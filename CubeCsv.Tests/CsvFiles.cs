@@ -16,12 +16,18 @@
                 BBS,Dilshan,Amarasinghe,07-05-2002,,214748364700000
                 IT,Paul,Wolf,07-07-2005,34,2349.876";
 
-        public static string InvalidCsv =
+        public static string InvalidFieldCsv =
                 $@"""{ HeaderNames.Department }"",""{ HeaderNames.FirstName }"",""{ HeaderNames.LastName }"",""{ HeaderNames.Age }""
                 TG,Charith,Gunasekara,42
                 TG,Kumanan,Panchalingam,ttt
                 BBS,Dilshan,Amarasinghe,tyu
                 IT,Paul,Wolf,65";
+        public static string EmptyRowsCsv =
+                $@"""{ HeaderNames.FullName }"",""{ HeaderNames.CustomerCode }"",""{ HeaderNames.BirthDate }""
+                Test,,
+                Dilshan,,
+                ,CON2429,
+                ,,2014-03-13";
     }
 
 }

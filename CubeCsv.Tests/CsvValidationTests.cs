@@ -34,7 +34,7 @@ namespace CubeCsv.Tests
         [TestMethod]
         public void CsvInvalidIntegerColumnTest()
         {
-            var data = encoding.GetBytes(CsvFiles.InvalidCsv);
+            var data = encoding.GetBytes(CsvFiles.InvalidFieldCsv);
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))

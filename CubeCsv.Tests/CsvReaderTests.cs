@@ -10,10 +10,11 @@ namespace CubeCsv.Tests
     [TestClass]
     public class CsvReaderTests
     {
+        private ASCIIEncoding encoding = new ASCIIEncoding();
+
         [TestMethod]
         public void CsvReaderTest()
         {
-            ASCIIEncoding encoding = new ASCIIEncoding();
             var data = encoding.GetBytes(CsvFiles.GeneralCsv);
             using (var stream = new MemoryStream(data))
             {
@@ -35,6 +36,26 @@ namespace CubeCsv.Tests
                     Assert.IsTrue(float.Parse(csvReader.GetValueAsString(HeaderNames.Worth) ?? "0.0") == 214748364700000);
                     Assert.IsTrue(csvReader.GetValue<float>(HeaderNames.Worth) == 214748364700000f);
                     Assert.ThrowsException<CsvInvalidCastException>(() => csvReader.GetValue<DateTime>(HeaderNames.FirstName) == DateTime.Parse("07-05-2002"));
+                }
+            }
+        }
+        [TestMethod]
+        public void CsvReadEmptyCsvFileTest()
+        {
+            var data = encoding.GetBytes(CsvFiles.EmptyRowsCsv);
+            using (var stream = new MemoryStream(data))
+            {
+                using (var streamReader = new StreamReader(stream))
+                using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
+                {
+                    csvReader.ReadAsync().Wait();
+                    Assert.IsTrue(csvReader.GetValue<string>(HeaderNames.FullName) == "Test");
+                    csvReader.ReadAsync().Wait();
+                    Assert.IsTrue(csvReader.GetValue<string>(HeaderNames.FullName) == "Dilshan");
+                    csvReader.ReadAsync().Wait();
+                    Assert.IsTrue(csvReader.GetValue<string>(HeaderNames.CustomerCode) == "CON2429");
+                    csvReader.ReadAsync().Wait();
+                    Assert.IsTrue(csvReader.GetValue<DateTime>(HeaderNames.BirthDate) == DateTime.Parse("2014-03-13"));
                 }
             }
         }

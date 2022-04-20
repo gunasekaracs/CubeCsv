@@ -27,7 +27,7 @@ namespace CubeCsv
             var field = _row[name];
             if (field.Value is T value)
                 return value;
-            throw 
+            throw
                 new CsvInvalidCastException($"Unable to convert type { field.Value.GetType() } into a type of { typeof(T) }");
         }
         public string GetValueAsString(string name)
@@ -54,7 +54,8 @@ namespace CubeCsv
         }
         private object ResolveValue(string value, Type type)
         {
-            if (value == null) return string.Empty;
+            if (string.IsNullOrWhiteSpace(value)) 
+                return string.Empty;
             if (type == typeof(DateTime)) return DateTime.Parse(value);
             if (type == typeof(double)) return double.Parse(value);
             if (type == typeof(float)) return float.Parse(value);
