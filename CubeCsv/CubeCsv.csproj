@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Charith Gunasekara</Authors>
+    <Copyright>Charith Gunasekara</Copyright>
+    <PackageTags>csv</PackageTags>
+    <RepositoryUrl>git@github.com:gunasekaracs/CubeCsv.git</RepositoryUrl>
+    <PackageIcon>CubeCsv.png</PackageIcon>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>CubeCsv.snk</AssemblyOriginatorKeyFile>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
+    <Version>1.0.3</Version>
+    <Description>Supports automatic schema detection and validation</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="CSV-Sharp.png" />
+    <None Remove="Icon\CubeCsv.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Icon\CubeCsv.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icon\CubeCsv.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+</Project>
