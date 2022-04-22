@@ -1,4 +1,4 @@
-﻿using CubeCsv.Exceptions;
+using CubeCsv.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,7 +15,9 @@ namespace CubeCsv
         public async Task<bool> ReadAsync()
         {
             if (_reader.EndOfStream) return false;
-            ReadRow(await _reader.ReadLineAsync());
+            string row = await _reader.ReadLineAsync();
+            if (!string.IsNullOrWhiteSpace(row))
+                ReadRow(row);
             return true;
         }
         public object GetValue(string name)
@@ -46,15 +48,13 @@ namespace CubeCsv
             _row = new CsvRow(_header);
             char delimiter = char.Parse(_configuration.Delimiter);
             List<string> values = new List<string>(row.Split(delimiter));
+            int index = 0;
             foreach (string value in values)
-            {
-                int index = values.IndexOf(value);
-                _row.Add(new CsvField() { Value = ResolveValue(value, Header[index].Schema.Type), Ordinal = index });
-            }
+                _row.Add(new CsvField() { Value = ResolveValue(value, Header[index].Schema.Type), Ordinal = index++ });
         }
         private object ResolveValue(string value, Type type)
         {
-            if (string.IsNullOrWhiteSpace(value)) 
+            if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
             if (type == typeof(DateTime)) return DateTime.Parse(value);
             if (type == typeof(double)) return double.Parse(value);

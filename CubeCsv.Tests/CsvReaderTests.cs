@@ -50,12 +50,20 @@ namespace CubeCsv.Tests
                 {
                     csvReader.ReadAsync().Wait();
                     Assert.IsTrue(csvReader.GetValue<string>(HeaderNames.FullName) == "Test");
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.BirthDate) == string.Empty);
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.CustomerCode) == string.Empty);
                     csvReader.ReadAsync().Wait();
                     Assert.IsTrue(csvReader.GetValue<string>(HeaderNames.FullName) == "Dilshan");
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.BirthDate) == string.Empty);
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.CustomerCode) == string.Empty);
                     csvReader.ReadAsync().Wait();
                     Assert.IsTrue(csvReader.GetValue<string>(HeaderNames.CustomerCode) == "CON2429");
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.BirthDate) == string.Empty);
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.FullName) == string.Empty);
                     csvReader.ReadAsync().Wait();
                     Assert.IsTrue(csvReader.GetValue<DateTime>(HeaderNames.BirthDate) == DateTime.Parse("2014-03-13"));
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.CustomerCode) == string.Empty);
+                    Assert.IsTrue(csvReader.GetValueAsString(HeaderNames.FullName) == string.Empty);
                 }
             }
         }
