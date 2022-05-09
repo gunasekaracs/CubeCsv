@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CubeCsv.Tests
 {
@@ -11,10 +10,6 @@ namespace CubeCsv.Tests
         {
             CsvDbContext context = new CsvDbContext();
             context.Seed();
-
-            using SqliteConnection connection = context.CreateConnection();
-
-            CsvSqlWriter csvSqlWriter = new (CsvSqlConstants.EmployeesTableName, null, new CsvRows());
         }
     }
 }
