@@ -10,6 +10,9 @@ namespace CubeCsv
     public sealed class CsvReader : CsvBase, IDisposable
     {
         private CsvRow _row;
+
+        public CsvRow Current { get { return _row; } }
+
         public CsvReader(StreamReader reader, CsvConfiguration configuration) : base(configuration, reader) { }
         public CsvReader(StreamReader reader, CultureInfo cultureInfo) : base(new CsvConfiguration() { CultureInfo = cultureInfo }, reader) { }
         public async Task<bool> ReadAsync()

@@ -28,6 +28,16 @@
                 Dilshan,,
                 ,CON2429,
                 ,,2014-03-13";
+        public static string CsvFileRowReading =
+                @"LDS2;TW Market OU Team A;T002222;P9WG;2010/01/05
+                P9WG;TW Market OU Group A;T004444;;2010/01/05
+                ABC1;TW Market CAM team 1;T123456;;2010/01/05
+                ABC2;TW Market CAM team 2;T123457;;2010/01/05
+                ABC3;TW Market CAM team 3;T123458;;2010/01/05
+                ABC4;TW Market CAM team 4;T123459;;2010/01/05
+                OPS1;TW Market OPS team 1;T123470;;2010/01/05
+                OPS2;TW Market OPS team 2;T123471;;2010/01/05
+                OPS3;TW Market OPS team 3;T123472;;2010/01/05";
     }
 
 }

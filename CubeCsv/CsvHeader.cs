@@ -8,7 +8,7 @@ namespace CubeCsv
 {
     public sealed class CsvHeader : List<CsvFieldHeader>, IDisposable
     {
-        private CsvConfiguration _configuration;
+        private CsvConfiguration _configuration = new CsvConfiguration();
         private StreamReader _reader;
         private Dictionary<Type, List<Type>> _allowedSwitches = new Dictionary<Type, List<Type>>()
         {
@@ -19,7 +19,13 @@ namespace CubeCsv
         };
 
         public CsvFieldHeader this[string name] => this.FirstOrDefault(x => x.Schema.Name == name);
+        public CsvConfiguration Configuration
+        {
+            get { return _configuration; }
+            set { _configuration = value; }
+        }
 
+        public CsvHeader() { }
         public CsvHeader(CsvConfiguration configuration, StreamReader reader)
         {
             _configuration = configuration;
@@ -41,6 +47,7 @@ namespace CubeCsv
                     Add(new CsvFieldHeader() { Schema = new CsvFieldSchema(header), Ordinal = headers.IndexOf(header) });
             }
         }
+
         public void Dispose()
         {
             _allowedSwitches = null;
