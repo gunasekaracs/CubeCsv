@@ -1,4 +1,4 @@
-﻿using CubeCsv.Exceptions;
+using CubeCsv.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -54,7 +54,6 @@ namespace CubeCsv
         }
         public void ResolveSchema(string delimiter)
         {
-            if (!_configuration.AutoDetectSchema) return;
             while (!_reader.EndOfStream)
             {
                 string row = _reader.ReadLine();
@@ -78,10 +77,10 @@ namespace CubeCsv
                             header.Schema.Length = length;
                     }
                 }
+                foreach (CsvFieldHeader header in this)
+                    if (header.Schema.Type == null)
+                        header.Schema.Type = typeof(string);
             }
-            foreach (CsvFieldHeader header in this)
-                if (header.Schema.Type == null)
-                    header.Schema.Type = typeof(string);
             _reader.BaseStream.Position = 0;
             if (_configuration.HasHeader)
                 _reader.ReadLine();

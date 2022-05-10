@@ -48,6 +48,8 @@ namespace CubeCsv
             StringBuilder builder = await CreateSqlBuilderAsync();
             foreach (var row in _rows)
             {
+                if (!row.HasHeader)
+                    row.Header = _schema.ToHeader();
                 builder.AppendLine($"{ row.ToSql() },");
                 if (count % Limit == 0)
                 {

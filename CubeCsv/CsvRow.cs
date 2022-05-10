@@ -17,6 +17,8 @@ namespace CubeCsv
             set { _header = value; }
         }
 
+        public bool HasHeader => _hasHeader;
+
         public CsvRow(CsvHeader header, bool hasHeader)
         {
             _header = header;
@@ -35,7 +37,7 @@ namespace CubeCsv
         public string ToSql()
         {
             StringBuilder builder = new StringBuilder("(");
-            if (_hasHeader && Count != _header.Count)
+            if (Count != _header.Count)
                 throw new CsvHeaderCountMismatchException("Header count and field count does not match");
             for (int i = 0; i < Count; i++)
             {
