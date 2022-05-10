@@ -48,7 +48,7 @@ namespace CubeCsv
         }
         private void ReadRow(string row)
         {
-            _row = new CsvRow(_header);
+            _row = new CsvRow(_header, _configuration.HasHeader);
             char delimiter = char.Parse(_configuration.Delimiter);
             List<string> values = new List<string>(row.Split(delimiter));
             int index = 0;

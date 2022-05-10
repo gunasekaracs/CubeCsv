@@ -54,6 +54,7 @@ namespace CubeCsv
         }
         public void ResolveSchema(string delimiter)
         {
+            if (!_configuration.AutoDetectSchema) return;
             while (!_reader.EndOfStream)
             {
                 string row = _reader.ReadLine();

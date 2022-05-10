@@ -9,6 +9,7 @@ namespace CubeCsv
     public class CsvRow : List<CsvField>
     {
         private CsvHeader _header;
+        private bool _hasHeader;
 
         public CsvHeader Header
         {
@@ -16,9 +17,10 @@ namespace CubeCsv
             set { _header = value; }
         }
 
-        public CsvRow(CsvHeader header)
+        public CsvRow(CsvHeader header, bool hasHeader)
         {
             _header = header;
+            _hasHeader = hasHeader;
         }
 
         public CsvField this[string name]
@@ -33,7 +35,7 @@ namespace CubeCsv
         public string ToSql()
         {
             StringBuilder builder = new StringBuilder("(");
-            if (Count != _header.Count)
+            if (_hasHeader && Count != _header.Count)
                 throw new CsvHeaderCountMismatchException("Header count and field count does not match");
             for (int i = 0; i < Count; i++)
             {

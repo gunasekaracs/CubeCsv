@@ -23,7 +23,7 @@ namespace CubeCsv
         {
             _configuration = configuration;
             _reader = reader;
-            _header = new CsvHeader(_configuration, _reader);
+            _header = new CsvHeader(_configuration, _reader);            
             _header.ResolveSchema(_configuration.Delimiter);
         }
     }
