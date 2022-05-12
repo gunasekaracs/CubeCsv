@@ -8,5 +8,6 @@ namespace CubeCsv
         public CultureInfo CultureInfo { get; set; } = CultureInfo.InvariantCulture;       
         public string Delimiter { get; set; } = ",";
         public bool HeaderDoubleQuoted { get; set; } = true;
+        public int SqlRowBatchSize { get; set; } = 1000;
     }
 }

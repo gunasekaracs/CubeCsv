@@ -11,18 +11,19 @@ namespace CubeCsv
 {
     public class CsvSqlWriter
     {
-        public string _table;
-        public SqlConnection _connection;
-        public CsvRows _rows;
-        public List<string> _columnExlusions;
-        public int Limit = 10;
-        public CsvSchema _schema;
+        private string _table;
+        private SqlConnection _connection;
+        private CsvRows _rows;
+        private List<string> _columnExlusions;
+        private CsvSchema _schema;
+        private int _sqlRowBatchSize;
 
-        public CsvSqlWriter(string table, SqlConnection connection, CsvRows rows, List<string> columnExlusions = null)
+        public CsvSqlWriter(string table, SqlConnection connection, CsvRows rows, int SqlRowBatchSize, List<string> columnExlusions = null)
         {
             _table = table;
             _connection = connection;
             _rows = rows;
+            _sqlRowBatchSize = SqlRowBatchSize;
             _columnExlusions = columnExlusions ?? new List<string>();
             if (_connection == null)
                 throw new CsvNullConnectionException("You have to specify a not null sql connection");
@@ -45,19 +46,25 @@ namespace CubeCsv
         {
             List<string> sql = new List<string>();
             int count = 1;
+            string script;
             StringBuilder builder = await CreateSqlBuilderAsync();
             foreach (var row in _rows)
             {
                 if (!row.HasHeader)
                     row.Header = _schema.ToHeader();
                 builder.AppendLine($"{ row.ToSql() },");
-                if (count % Limit == 0)
+                if (count % _sqlRowBatchSize == 0)
                 {
-                    string script = builder.ToString().Trim();
+                    script = builder.ToString().Trim();
                     sql.Add(script.Remove(script.Length - 1, 1));
                     builder = await CreateSqlBuilderAsync();
                 }
                 count++;
+            }
+            if (builder.Length > 0)
+            {
+                script = builder.ToString().Trim();
+                sql.Add(script.Remove(script.Length - 1, 1));
             }
             return sql;
         }

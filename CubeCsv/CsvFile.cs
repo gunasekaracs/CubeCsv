@@ -51,7 +51,7 @@ namespace CubeCsv
             _header = null;
         }
         public async Task<int> WirteRowsToTableAsync(string table, SqlConnection connection, List<string> columnExlusions) =>
-            await new CsvSqlWriter(table, connection, Rows, columnExlusions).WirteRowsToTableAsync();
+            await new CsvSqlWriter(table, connection, Rows, _configuration.SqlRowBatchSize, columnExlusions).WirteRowsToTableAsync();
         public void AddHeader(int location, CsvFieldHeader header)
         {
             Header.Insert(location, header);
