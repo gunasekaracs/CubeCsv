@@ -18,16 +18,18 @@ namespace CubeCsv
         private CsvSchema _schema;
         private int _sqlRowBatchSize;
 
-        public CsvSqlWriter(string table, SqlConnection connection, CsvRows rows, int SqlRowBatchSize, List<string> columnExlusions = null)
+        public CsvSqlWriter(string table, SqlConnection connection, CsvRows rows, int SqlRowBatchSize, CsvSchema schema = null, List<string> columnExlusions = null)
         {
             _table = table;
             _connection = connection;
             _rows = rows;
             _sqlRowBatchSize = SqlRowBatchSize;
+            _schema = schema;
             _columnExlusions = columnExlusions ?? new List<string>();
             if (_connection == null)
                 throw new CsvNullConnectionException("You have to specify a not null sql connection");
         }
+
         public async Task<int> WirteRowsToTableAsync()
         {
             int count = 0;
@@ -41,7 +43,6 @@ namespace CubeCsv
             _connection.Close();
             return _rows.Count;
         }
-
         public async Task<List<string>> GenerateSqlAsync()
         {
             List<string> sql = new List<string>();
@@ -68,13 +69,11 @@ namespace CubeCsv
             }
             return sql;
         }
-
         private async Task<StringBuilder> CreateSqlBuilderAsync()
         {
             if (_schema == null) _schema = await GetSchemaAsync();
             return new StringBuilder($"INSERT INTO \"{ _table }\" ({ string.Join(",", _schema.Select(x => x.Name).ToArray()) }) VALUES { Environment.NewLine }");
         }
-
         public async Task<CsvSchema> GetSchemaAsync()
         {
             if (_connection.State == ConnectionState.Closed)

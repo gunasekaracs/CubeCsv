@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CubeCsv
+﻿namespace CubeCsv
 {
     public class CsvFieldHeader: CsvOrdinal
     {

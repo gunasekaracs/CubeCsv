@@ -7,6 +7,7 @@ namespace CubeCsv
         protected StreamReader _reader;
         protected CsvConfiguration _configuration = new CsvConfiguration();
         protected CsvHeader _header;
+        protected int _skipRowCount = 1;
 
         public CsvHeader Header { get { return _header; } }
         public CsvConfiguration Configuration
@@ -25,6 +26,7 @@ namespace CubeCsv
             _reader = reader;
             _header = new CsvHeader(_configuration, _reader);            
             _header.ResolveSchema(_configuration.Delimiter);
+            _skipRowCount = _configuration.SkipRowCount;    
         }
     }
 }

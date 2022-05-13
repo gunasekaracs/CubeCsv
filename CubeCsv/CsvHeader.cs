@@ -10,6 +10,7 @@ namespace CubeCsv
     {
         private CsvConfiguration _configuration = new CsvConfiguration();
         private StreamReader _reader;
+        private bool _requireLenghDetection;
         private Dictionary<Type, List<Type>> _allowedSwitches = new Dictionary<Type, List<Type>>()
         {
             { typeof(int), new List<Type>{ typeof(string), typeof(double),  typeof(float) } },
@@ -30,21 +31,34 @@ namespace CubeCsv
         {
             _configuration = configuration;
             _reader = reader;
-            string delimiter = _configuration.Delimiter;
-            if (_configuration.HasHeader)
+            if (configuration.Schema != null)
             {
-                string headerDelimiter = _configuration.Delimiter;
-                if (_configuration.HeaderDoubleQuoted)
-                    headerDelimiter = $"\"{ delimiter }\"";
-                if (_reader.EndOfStream)
-                    throw new CsvMissingHeaderException("There is no header row found");
-                string headerLine = _reader.ReadLine();
-                if (headerLine != null && string.IsNullOrWhiteSpace(headerLine))
-                    throw new CsvMissingHeaderException("Invalid header line found");
-                headerLine = Sanitize(headerLine, headerDelimiter);
-                List<string> headers = new List<string>(headerLine.Split(delimiter.ToCharArray()));
-                foreach (string header in headers)
-                    Add(new CsvFieldHeader() { Schema = new CsvFieldSchema(header), Ordinal = headers.IndexOf(header) });
+                foreach (var item in configuration.Schema)
+                    Add(new CsvFieldHeader()
+                    {
+                        Schema = new CsvFieldSchema(item.Name, item.Type, item.Length),
+                        Ordinal = configuration.Schema.IndexOf(item)
+                    });
+            }
+            else
+            {
+                _requireLenghDetection = true;
+                string delimiter = _configuration.Delimiter;
+                if (_configuration.HasHeader)
+                {
+                    string headerDelimiter = _configuration.Delimiter;
+                    if (_configuration.HeaderDoubleQuoted)
+                        headerDelimiter = $"\"{ delimiter }\"";
+                    if (_reader.EndOfStream)
+                        throw new CsvMissingHeaderException("There is no header row found");
+                    string headerLine = _reader.ReadLine();
+                    if (headerLine != null && string.IsNullOrWhiteSpace(headerLine))
+                        throw new CsvMissingHeaderException("Invalid header line found");
+                    headerLine = Sanitize(headerLine, headerDelimiter);
+                    List<string> headers = new List<string>(headerLine.Split(delimiter.ToCharArray()));
+                    foreach (string header in headers)
+                        Add(new CsvFieldHeader() { Schema = new CsvFieldSchema(header), Ordinal = headers.IndexOf(header) });
+                }
             }
         }
 
@@ -54,6 +68,7 @@ namespace CubeCsv
         }
         public void ResolveSchema(string delimiter)
         {
+            if (!_requireLenghDetection) return;
             while (!_reader.EndOfStream)
             {
                 string row = _reader.ReadLine();
@@ -101,7 +116,11 @@ namespace CubeCsv
             CsvFieldHeader header = null;
             int index = values.IndexOf(field);
             if (Count < index + 1)
-                Add(header = new CsvFieldHeader() { Schema = new CsvFieldSchema(type) });
+                Add(header = new CsvFieldHeader()
+                {
+                    Ordinal = index,
+                    Schema = new CsvFieldSchema(type)
+                });
             else
             {
                 header = this[index];
@@ -116,6 +135,13 @@ namespace CubeCsv
                     header.Schema.Type = type;
             }
             return header;
+        }
+        public CsvSchema ToSchema()
+        {
+            CsvSchema schema = new CsvSchema();
+            foreach (CsvFieldHeader header in this)
+                schema.Add(header.Schema);
+            return schema;
         }
     }
 }

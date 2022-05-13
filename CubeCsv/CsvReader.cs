@@ -10,6 +10,7 @@ namespace CubeCsv
     public sealed class CsvReader : CsvBase, IDisposable
     {
         private CsvRow _row;
+        private int _index = 0;
 
         public CsvRow Current { get { return _row; } }
 
@@ -18,9 +19,15 @@ namespace CubeCsv
         public async Task<bool> ReadAsync()
         {
             if (_reader.EndOfStream) return false;
-            string row = await _reader.ReadLineAsync();
-            if (!string.IsNullOrWhiteSpace(row))
-                ReadRow(row);
+            if (_index < _skipRowCount)
+                await _reader.ReadLineAsync();
+            else
+            {
+                string row = await _reader.ReadLineAsync();
+                if (!string.IsNullOrWhiteSpace(row))
+                    ReadRow(row);
+            }
+            _index++;
             return true;
         }
         public object GetValue(string name)
