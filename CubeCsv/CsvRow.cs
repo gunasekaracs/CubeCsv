@@ -77,12 +77,16 @@ namespace CubeCsv
         {
             return ParseToString(ParsingMethod.Json);
         }
+        public override string ToString()
+        {
+            return String.Join(',', this);
+        }
         private string ParseToString(ParsingMethod method)
         {
             var bracket = GetBracket(method);
             StringBuilder builder = new StringBuilder($"{ bracket.Open }");
             if (Count != _header.Count)
-                throw new CsvHeaderCountMismatchException("Header count and field count does not match");
+                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has { Count } columns and header has { _header.Count }. Row = [{ this }] and Header = [{ _header }]");
             for (int i = 0; i < Count; i++)
             {
                 CsvField field = this[i];

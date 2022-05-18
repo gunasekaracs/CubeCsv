@@ -143,5 +143,9 @@ namespace CubeCsv
                 schema.Add(header.Schema);
             return schema;
         }
+        public override string ToString()
+        {
+            return string.Join(',', this);
+        }
     }
 }

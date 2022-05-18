@@ -1,4 +1,4 @@
-﻿namespace CubeCsv
+namespace CubeCsv
 {
     public class CsvFieldHeader: CsvOrdinal
     {
@@ -6,6 +6,11 @@
         public CsvFieldHeader()
         {
             Schema = new CsvFieldSchema();
+        }
+
+        public override string ToString()
+        {
+            return (Schema??new CsvFieldSchema()).ToString();
         }
     }
 }

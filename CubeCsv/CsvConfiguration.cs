@@ -1,4 +1,5 @@
 using System.Globalization;
+using CubeCsv.Processors;
 
 namespace CubeCsv
 {
@@ -10,6 +11,9 @@ namespace CubeCsv
         public bool HeaderDoubleQuoted { get; set; } = true;
         public int SqlRowBatchSize { get; set; } = 1000;
         public int SkipRowCount { get; set; } = 0;
+        public bool RemoveLineBreaks { get; set; }
         public CsvSchema Schema { get; set; }
+        public ICsvCellCleaner CellCleaner { get; set; }
+        public ICsvRowCleaner RowCleaner { get; set; }
     }
 }

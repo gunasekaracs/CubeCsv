@@ -7,6 +7,10 @@ namespace CubeCsv
     {
         public object Value { get; set; }
 
+        public override string ToString()
+        {
+            return (Value ?? string.Empty).ToString();
+        }
         public string ToSql(CsvFieldHeader header)
         {
             StringBuilder builder = new StringBuilder();

@@ -57,13 +57,21 @@ namespace CubeCsv
         {
             _row = new CsvRow(_header, _configuration.HasHeader);
             char delimiter = char.Parse(_configuration.Delimiter);
+            if (_configuration.RemoveLineBreaks)
+                row = row.Replace(Environment.NewLine, string.Empty);
+            if (_configuration.RowCleaner != null)
+                row = _configuration.RowCleaner.Clean(row);
             List<string> values = new List<string>(row.Split(delimiter));
+            if (values.Count != Header.Count)
+                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has { values.Count } columns and header has { Header.Count }. Row = [{ string.Join(',', values) }] and Header = [{ Header }]");
             int index = 0;
             foreach (string value in values)
                 _row.Add(new CsvField() { Value = ResolveValue(value, Header[index].Schema.Type), Ordinal = index++ });
         }
         private object ResolveValue(string value, Type type)
         {
+            if (_configuration.CellCleaner != null)
+                value = _configuration.CellCleaner.Clean(value);
             if (string.IsNullOrWhiteSpace(value))
                 return string.Empty;
             if (type == typeof(DateTime)) return DateTime.Parse(value);

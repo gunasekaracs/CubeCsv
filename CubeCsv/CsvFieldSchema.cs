@@ -34,5 +34,9 @@ namespace CubeCsv
         {
             return base.GetHashCode();
         }
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }
