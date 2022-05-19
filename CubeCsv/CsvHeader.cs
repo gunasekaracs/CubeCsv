@@ -92,10 +92,10 @@ namespace CubeCsv
                             header.Schema.Length = length;
                     }
                 }
-                foreach (CsvFieldHeader header in this)
-                    if (header.Schema.Type == null)
-                        header.Schema.Type = typeof(string);
             }
+            foreach (CsvFieldHeader header in this)
+                if (header.Schema.Type == null)
+                    header.Schema.Type = typeof(string);
             _reader.BaseStream.Position = 0;
             if (_configuration.HasHeader)
                 _reader.ReadLine();
@@ -145,7 +145,7 @@ namespace CubeCsv
         }
         public override string ToString()
         {
-            return string.Join(',', this);
+            return string.Join(",", this);
         }
     }
 }

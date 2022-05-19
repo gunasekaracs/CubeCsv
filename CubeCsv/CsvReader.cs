@@ -63,7 +63,7 @@ namespace CubeCsv
                 row = _configuration.RowCleaner.Clean(row);
             List<string> values = new List<string>(row.Split(delimiter));
             if (values.Count != Header.Count)
-                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has { values.Count } columns and header has { Header.Count }. Row = [{ string.Join(',', values) }] and Header = [{ Header }]");
+                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has { values.Count } columns and header has { Header.Count }. Row = [{ string.Join(",", values) }] and Header = [{ Header }]");
             int index = 0;
             foreach (string value in values)
                 _row.Add(new CsvField() { Value = ResolveValue(value, Header[index].Schema.Type), Ordinal = index++ });

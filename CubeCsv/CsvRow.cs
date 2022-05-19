@@ -79,7 +79,7 @@ namespace CubeCsv
         }
         public override string ToString()
         {
-            return String.Join(',', this);
+            return String.Join(",", this);
         }
         private string ParseToString(ParsingMethod method)
         {
