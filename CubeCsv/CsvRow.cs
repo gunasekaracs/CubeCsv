@@ -60,13 +60,13 @@ namespace CubeCsv
         public void Encrypt(string key, string[] columnExclusions)
         {
             foreach (var field in this)
-                if (!columnExclusions.Any(x => x == Header[this.IndexOf(field)].Schema.Name))
+                if (columnExclusions == null || !columnExclusions.Any(x => x == Header[this.IndexOf(field)].Schema.Name))
                     field.Encrypt(key);
         }
         public void Decrypt(string key, string[] columnExclusions)
         {
             foreach (var field in this)
-                if (!columnExclusions.Any(x => x == Header[this.IndexOf(field)].Schema.Name))
+                if (columnExclusions == null || !columnExclusions.Any(x => x == Header[this.IndexOf(field)].Schema.Name))
                     field.Decript(key);
         }
         public string ToSql()

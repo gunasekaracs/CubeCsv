@@ -58,7 +58,7 @@ namespace CubeCsv
             _header = null;
         }
         public async Task<CsvFile> ConvertToJsonAsync(string jsonColumnName)
-        {            
+        {
             return await Task.Run(() =>
             {
                 var jsonConverter = new CsvJsonConverter(jsonColumnName, Rows, Header.ToSchema());
@@ -66,7 +66,7 @@ namespace CubeCsv
                 return new CsvFile(result.Rows, result.Schema.ToHeader());
             });
         }
-        public async Task<CsvFile> AddHashColumnColumn(string hashColumnName)
+        public async Task<CsvFile> AddHashColumnColumnAsync(string hashColumnName)
         {
             return await Task.Run(() =>
             {
@@ -75,7 +75,7 @@ namespace CubeCsv
                 return this;
             });
         }
-        public async Task<CsvFile> EncryptData(string key, string[] columnExclusions)
+        public async Task<CsvFile> EncryptDataAsync(string key, string[] columnExclusions = null)
         {
             Encrypted = true;
             return await Task.Run(() =>
@@ -85,7 +85,7 @@ namespace CubeCsv
                 return this;
             });
         }
-        public async Task<CsvFile> DecryptData(string key, string[] columnExclusions)
+        public async Task<CsvFile> DecryptDataAsync(string key, string[] columnExclusions = null)
         {
             Encrypted = true;
             return await Task.Run(() =>

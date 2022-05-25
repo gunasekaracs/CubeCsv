@@ -1,4 +1,3 @@
-using CubeCsv.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,27 +8,17 @@ using System.Threading.Tasks;
 
 namespace CubeCsv
 {
-    public class CsvSqlWriter
+    public class CsvSqlWriter : CsvSqlBase
     {
-        private string _table;
-        private SqlConnection _connection;
         private CsvRows _rows;
-        private List<string> _columnExlusions;
-        private CsvSchema _schema;
         private int _sqlRowBatchSize;
 
         public CsvSqlWriter(string table, SqlConnection connection, CsvRows rows, int SqlRowBatchSize, CsvSchema schema = null, List<string> columnExlusions = null)
+            : base(table, connection, schema, columnExlusions)
         {
-            _table = table;
-            _connection = connection;
             _rows = rows;
             _sqlRowBatchSize = SqlRowBatchSize;
-            _schema = schema;
-            _columnExlusions = columnExlusions ?? new List<string>();
-            if (_connection == null)
-                throw new CsvNullConnectionException("You have to specify a not null sql connection");
         }
-
         public async Task<int> WirteRowsToTableAsync()
         {
             int count = 0;
@@ -73,45 +62,6 @@ namespace CubeCsv
         {
             if (_schema == null) _schema = await GetSchemaAsync();
             return new StringBuilder($"INSERT INTO \"{ _table }\" ({ string.Join(",", _schema.Select(x => x.Name).ToArray()) }) VALUES { Environment.NewLine }");
-        }
-        public async Task<CsvSchema> GetSchemaAsync()
-        {
-            if (_connection.State == ConnectionState.Closed)
-                await _connection.OpenAsync();
-
-            string sql =
-                $@"IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{ _table }'))
-                BEGIN
-	                SELECT 'true';
-                END
-                ELSE
-                BEGIN
-	                SELECT 'false'
-                END;";
-
-            SqlCommand command = new SqlCommand(sql, _connection);
-            if (bool.TryParse((await command.ExecuteScalarAsync() ?? string.Empty).ToString(), out var exists) && exists)
-            {
-                command = new SqlCommand($"SELECT * FROM \"{ _table }\" WHERE 1 = 2", _connection);
-                var reader = command.ExecuteReader();
-                var schemaTable = reader.GetSchemaTable();
-                CsvSchema schema = new CsvSchema();
-                foreach (DataRow row in schemaTable.Rows)
-                {
-                    string name = row[0].ToString();
-                    if (_columnExlusions.Exists(x => x == name)) continue;
-                    schema.Add(new CsvFieldSchema()
-                    {
-                        Name = name,
-                        Length = int.Parse(row[4].ToString()),
-                        Type = Type.GetType(row[12].ToString())
-                    });
-                }
-                _connection.Close();
-                return schema;
-            }
-            else
-                throw new CsvMissingTableException($"Table { _table } does not exists");
         }
     }
 }

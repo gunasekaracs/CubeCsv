@@ -5,57 +5,72 @@ using System.Text;
 
 namespace CubeCsv
 {
-    class CsvCryptoHandler
+    public class CsvCryptoHandler
     {
-        private static readonly byte[] EncryptionSalt = new byte[] { 10, 176, 223, 6, 116, 75, 242, 92, 15, 150, 100, 223, 76, 132, 250, 251 };
+        #region Attributes
+
+        private static readonly byte[] EncryptionSalt = new byte[] { 101, 176, 223, 18, 116, 37, 242, 92, 115, 50, 100, 42, 76, 132, 250, 2 };
         private static readonly int Rfc2898KeygenIterations = 100;
         private static readonly int AesKeySizeInBits = 128;
 
-        public string Encrypt(string value, string key)
+        #endregion
+
+        #region Public Methods
+
+        public string Encrypt(string input, string key)
         {
-            byte[] bytes = Encoding.Unicode.GetBytes(value);
-            byte[] encrypted;
+            byte[] rawBytes = Encoding.Unicode.GetBytes(input);
+            byte[] rawCipherText = null;
             using (var aes = GetAes(key))
-            using (MemoryStream memoryStream = new MemoryStream())
-            using (var cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
             {
-                cryptoStream.Write(bytes, 0, bytes.Length);
-                encrypted = memoryStream.ToArray();
-                return Convert.ToBase64String(encrypted);
+                using (var ms = new MemoryStream())
+                {
+                    using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(rawBytes, 0, rawBytes.Length);
+                    }
+                    rawCipherText = ms.ToArray();
+                }
             }
-        }
-        public string Decrypt(string value, string key)
-        {
-            byte[] bytes = Convert.FromBase64String(value);
-            byte[] decrypted;
-            using (var aes = GetAes(key))
-            using (var memoryStream = new MemoryStream())
-            using (var cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
-            {
-                cryptoStream.Write(bytes, 0, bytes.Length);
-                decrypted = memoryStream.ToArray();
-                return Encoding.Unicode.GetString(decrypted);
-            }
+            return Convert.ToBase64String(rawCipherText);
         }
 
-        private static Aes GetAes(string key, byte[] keyOveride = null)
+        public string Decrypt(string input, string key)
         {
-            var aes = Aes.Create();
+            byte[] rawCipherText = Convert.FromBase64String(input);
+            byte[] rawPlainText = null;
+            using (var aes = GetAes(key))
+            {
+                using (var ms = new MemoryStream())
+                {
+                    using (var cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(rawCipherText, 0, rawCipherText.Length);
+                    }
+                    rawPlainText = ms.ToArray();
+                }
+            }
+            return Encoding.Unicode.GetString(rawPlainText);
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private static Aes GetAes(string key)
+        {
+            var aes = new AesManaged();
             aes.Padding = PaddingMode.PKCS7;
             aes.KeySize = AesKeySizeInBits;
-            if (keyOveride == null)
-            {
-                int KeyStrengthInBytes = aes.KeySize / 8;
-                var rfc2898 = new Rfc2898DeriveBytes(key, EncryptionSalt, Rfc2898KeygenIterations);
-                aes.Key = rfc2898.GetBytes(KeyStrengthInBytes);
-                aes.IV = rfc2898.GetBytes(KeyStrengthInBytes);
-            }
-            else
-            {
-                aes.Key = keyOveride;
-                aes.IV = keyOveride;
-            }
+
+            int KeyStrengthInBytes = aes.KeySize / 8;
+            var rfc2898 = new Rfc2898DeriveBytes(key, EncryptionSalt, Rfc2898KeygenIterations);
+            aes.Key = rfc2898.GetBytes(KeyStrengthInBytes);
+            aes.IV = rfc2898.GetBytes(KeyStrengthInBytes);
+
             return aes;
         }
+
+        #endregion
     }
 }
