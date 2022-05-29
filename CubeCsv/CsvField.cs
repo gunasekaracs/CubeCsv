@@ -7,10 +7,11 @@ namespace CubeCsv
     {
         public object Value { get; set; }
 
-        public override string ToString()
+        public string ToString(string delimiter)
         {
             string value = (Value ?? string.Empty).ToString();
-            if (value.Contains(",")) return $"\"{value}\"";
+            if (value.Contains(delimiter) && !value.StartsWith("\"") && !value.EndsWith("\""))
+                return $"\"{value}\"";
             return value;
         }
         public string ToSql(CsvFieldHeader header)
@@ -38,13 +39,13 @@ namespace CubeCsv
         {
             if (Value == null)
                 throw new ArgumentNullException("Value of the csv field is null, so unable to encrypt, please review");
-            Value = handler.Encrypt(Value.ToString(), key);
+            Value = handler.EncryptValue(Value.ToString(), key);
         }
         public void Decript(string key, CsvCryptoHandler handler)
         {
             if (Value == null)
                 throw new ArgumentNullException("Value of the csv field is null, so unable to encrypt, please review");
-            Value = handler.Decrypt(Value.ToString(), key);
+            Value = handler.DecryptValue(Value.ToString(), key);
         }
     }
 }

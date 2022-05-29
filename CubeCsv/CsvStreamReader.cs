@@ -3,18 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CubeCsv
 {
-    public sealed class CsvStreamReader : IDisposable
+    sealed class CsvStreamReader : IDisposable
     {
         private CsvRow _row;
         private int _location = 0;
         private StreamReader _reader;
         private CsvConfiguration _configuration = new CsvConfiguration();
         private CsvHeader _header;
-        private int _skipRowCount = 1;        
+        private int _skipRowCount = 0;
+        private char comma = '∙';
 
         public CsvHeader Header { get { return _header; } }
         public CsvConfiguration Configuration
@@ -24,6 +27,7 @@ namespace CubeCsv
         }
         public CsvRow Current { get { return _row; } }
         public int Location => _location - 1;
+        public int SkipRowCount => _skipRowCount;   
 
         public CsvStreamReader(StreamReader reader, CsvConfiguration configuration)
         {
@@ -93,7 +97,8 @@ namespace CubeCsv
                 row = row.Replace(Environment.NewLine, string.Empty);
             if (_configuration.RowCleaner != null)
                 row = _configuration.RowCleaner.Clean(row);
-            List<string> values = new List<string>(row.Split(delimiter));
+            row = ReplaceRequiredCommas(row, delimiter);
+            var values = new List<string>(row.Split(delimiter)).Select(x => RestoreCommas(x, delimiter)).ToList();
             if (values.Count != Header.Count)
                 throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has {values.Count} columns and header has {Header.Count}. Row = [{string.Join(",", values)}] and Header = [{Header}]");
             int index = 0;
@@ -112,6 +117,38 @@ namespace CubeCsv
             if (type == typeof(long)) return long.Parse(value);
             if (type == typeof(int)) return int.Parse(value);
             return value.Trim();
+        }
+
+        private List<int> GetQuotedCommas(string value, char delimiter)
+        {
+            bool quoted = false;
+            List<int> indexes = new();
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                char charactor = value[i];
+                if (charactor == '"') quoted = !quoted;
+                if (quoted && charactor == delimiter) indexes.Add(i);
+            }
+
+            return indexes;
+        }
+
+        private string ReplaceRequiredCommas(string value, char delimiter)
+        {
+            List<int> indexes = GetQuotedCommas(value, delimiter);
+
+            StringBuilder builder = new(value);
+            foreach (int i in indexes)
+                builder[i] = comma;
+            value = builder.ToString();
+            value = value.Replace($"{comma} ", comma.ToString());
+
+            return value;
+        }
+        private string RestoreCommas(string value, char delimiter)
+        {
+            return value.Replace(comma.ToString(), delimiter.ToString());
         }
     }
 }

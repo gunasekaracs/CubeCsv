@@ -15,7 +15,7 @@ namespace CubeCsv
         {
             _tableDirect = tableDirect;
         }
-        public async Task<int> WirteRowsToTableAsync()
+        public async Task<int> WirteToTableAsync()
         {
             int count = 0;
             foreach (var sql in await GenerateSqlAsync())

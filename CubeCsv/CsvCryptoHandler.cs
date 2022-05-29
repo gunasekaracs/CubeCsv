@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CubeCsv
 {
@@ -17,7 +18,7 @@ namespace CubeCsv
 
         #region Public Methods
 
-        public string Encrypt(string input, string key)
+        public string EncryptValue(string input, string key)
         {
             byte[] rawBytes = Encoding.Unicode.GetBytes(input);
             byte[] rawCipherText = null;
@@ -35,7 +36,7 @@ namespace CubeCsv
             return Convert.ToBase64String(rawCipherText);
         }
 
-        public string Decrypt(string input, string key)
+        public string DecryptValue(string input, string key)
         {
             byte[] rawCipherText = Convert.FromBase64String(input);
             byte[] rawPlainText = null;
@@ -51,6 +52,22 @@ namespace CubeCsv
                 }
             }
             return Encoding.Unicode.GetString(rawPlainText);
+        }
+
+        public async Task<TableDirect> ConvertCrypto(bool encrypt, TableDirect tableDirect, string key, CsvHeader header, CsvConfiguration configuration, string[] columnExclusions = null)
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamReader reader = new StreamReader(stream);
+            StreamWriter writer = new StreamWriter(stream);
+            while (await tableDirect.ReadAsync())
+            {
+                if(encrypt) tableDirect.Current.Encrypt(key, columnExclusions, this, header);
+                else tableDirect.Current.Decrypt(key, columnExclusions, this, header);
+                writer.WriteLine(tableDirect.Current.ToString(configuration.Delimiter));
+            }
+            writer.Flush();
+            tableDirect.Dispose();
+            return new TableDirect(reader, configuration);
         }
 
         #endregion

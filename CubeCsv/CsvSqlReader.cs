@@ -33,7 +33,7 @@ namespace CubeCsv
                         CsvRow row = new CsvRow();
                         foreach (var column in header)
                             row.Add(new CsvField() { Ordinal = column.Ordinal, Value = dataReader.GetValue(dataReader.GetOrdinal(column.Schema.Name)) });
-                        writer.WriteLine(row);
+                        writer.WriteLine(row.ToString(_configuration.Delimiter));
                     }                   
                     _configuration.Schema = _schema;
                     writer.Flush();

@@ -26,6 +26,21 @@ namespace CubeCsv
                 Add(field);
             }
         }
+        public string ToJson(CsvHeader headers)
+        {
+            return ParseToString(ParsingMethod.Json, headers);
+        }
+        internal void SetValue(int location, CsvFieldHeader header, object value)
+        {
+            if (value == null)
+                throw new CsvNullValueException("Value cannot be null");
+            if (location >= Count)
+                throw new CsvOutBoundException("Location is out of bounds");
+            CsvField field = this[location];
+            if (header != null && header.Schema.Type != value.GetType())
+                throw new CsvInvalidCastException($"Schema type {header.Schema.Type}and value type [{value.GetType()}] does not match");
+            field.Value = value;
+        }
         internal void Encrypt(string key, string[] columnExclusions, CsvCryptoHandler handler, CsvHeader header)
         {
             foreach (var field in this)
@@ -42,13 +57,9 @@ namespace CubeCsv
         {
             return ParseToString(ParsingMethod.Sql, headers);
         }
-        internal string ToJson(CsvHeader headers)
+        public string ToString(string delimiter)
         {
-            return ParseToString(ParsingMethod.Json, headers);
-        }
-        public override string ToString()
-        {
-            return string.Join(",", this);
+            return string.Join(delimiter, this.Select(x => x.ToString(delimiter)));
         }
         private string ParseToString(ParsingMethod method, CsvHeader headers)
         {

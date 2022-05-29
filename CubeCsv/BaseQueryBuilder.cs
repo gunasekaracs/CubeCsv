@@ -1,4 +1,4 @@
-﻿using CubeCsv.Exceptions;
+using CubeCsv.Exceptions;
 using System;
 using System.Data;
 using System.Linq;
@@ -9,7 +9,14 @@ namespace CubeCsv
     {
         public virtual string GetTableExistsSql(string table)
         {
-            return $@"SELECT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{table}');";
+            return $@"IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{table}'))
+                BEGIN
+	                SELECT 1;
+                END
+                ELSE
+                BEGIN
+	                SELECT 0
+                END;";
         }
         public virtual string GetSchemaReadingSql(string table)
         {
