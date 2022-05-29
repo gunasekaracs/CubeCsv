@@ -72,7 +72,7 @@ namespace CubeCsv
         }
         public void Reset()
         {
-            _reader.BaseStream.Position = 0;
+            _reader.BaseStream.Seek(0, SeekOrigin.Begin);
             if (_configuration.HasHeader)
                 _reader.ReadLine();
         }

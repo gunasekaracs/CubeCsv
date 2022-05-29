@@ -34,6 +34,9 @@ namespace CubeCsv.Tests
             Assert.IsTrue(tableDirect.Header[3].Ordinal == 3);
             Assert.IsTrue(tableDirect.Header[3].Schema.Name == CsvSqlConstants.DateOfBirth);
             Assert.IsTrue(tableDirect.Header[3].Schema.Type == typeof(string));
+
+            int count = tableDirect.CountAsync().Result;
+            Assert.IsTrue(count == 5);
         }
     }
 }
