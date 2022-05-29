@@ -9,46 +9,15 @@ namespace CubeCsv
 {
     public class CsvRow : List<CsvField>
     {
-        private CsvHeader _header;
-        private bool _hasHeader;
         private enum ParsingMethod
         {
             Sql,
             Json
         }
 
-        public CsvHeader Header
-        {
-            get { return _header; }
-            set { _header = value; }
-        }
-        public bool HasHeader => _hasHeader;
-        public CsvRow(CsvHeader header, bool hasHeader)
-        {
-            _header = header;
-            _hasHeader = hasHeader;
-        }
-        public CsvField this[string name]
-        {
-            get
-            {
-                CsvFieldHeader header = _header[name];
-                return this.FirstOrDefault(x => x.Ordinal == header.Ordinal);
-            }
-        }
-        public void AddHashColumn(string hashColumnName)
+        public void AddHashColumn()
         {
             var field = new CsvField();
-            if (Header != null) Header.Add(new CsvFieldHeader()
-            {
-                Ordinal =
-                Header.Count,
-                Schema = new CsvFieldSchema()
-                {
-                    Name = hashColumnName,
-                    Type = typeof(string),
-                }
-            });
             using (var computer = SHA256.Create())
             {
                 string value = string.Join(string.Empty, this.Select(x => x.Value));
@@ -57,40 +26,40 @@ namespace CubeCsv
                 Add(field);
             }
         }
-        public void Encrypt(string key, string[] columnExclusions)
+        internal void Encrypt(string key, string[] columnExclusions, CsvCryptoHandler handler, CsvHeader header)
         {
             foreach (var field in this)
-                if (columnExclusions == null || !columnExclusions.Any(x => x == Header[this.IndexOf(field)].Schema.Name))
-                    field.Encrypt(key);
+                if (columnExclusions == null || !columnExclusions.Any(x => x == header[IndexOf(field)].Schema.Name))
+                    field.Encrypt(key, handler);
         }
-        public void Decrypt(string key, string[] columnExclusions)
+        internal void Decrypt(string key, string[] columnExclusions, CsvCryptoHandler handler, CsvHeader header)
         {
             foreach (var field in this)
-                if (columnExclusions == null || !columnExclusions.Any(x => x == Header[this.IndexOf(field)].Schema.Name))
-                    field.Decript(key);
+                if (columnExclusions == null || !columnExclusions.Any(x => x == header[IndexOf(field)].Schema.Name))
+                    field.Decript(key, handler);
         }
-        public string ToSql()
+        internal string ToSql(CsvHeader headers)
         {
-            return ParseToString(ParsingMethod.Sql);
+            return ParseToString(ParsingMethod.Sql, headers);
         }
-        public string ToJson()
+        internal string ToJson(CsvHeader headers)
         {
-            return ParseToString(ParsingMethod.Json);
+            return ParseToString(ParsingMethod.Json, headers);
         }
         public override string ToString()
         {
-            return String.Join(",", this);
+            return string.Join(",", this);
         }
-        private string ParseToString(ParsingMethod method)
+        private string ParseToString(ParsingMethod method, CsvHeader headers)
         {
             var bracket = GetBracket(method);
-            StringBuilder builder = new StringBuilder($"{ bracket.Open }");
-            if (Count != _header.Count)
-                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has { Count } columns and header has { _header.Count }. Row = [{ this }] and Header = [{ _header }]");
+            StringBuilder builder = new StringBuilder($"{bracket.Open}");
+            if (Count != headers.Count)
+                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has {Count} columns and header has {headers.Count}. Row = [{this}] and Header = [{headers}]");
             for (int i = 0; i < Count; i++)
             {
                 CsvField field = this[i];
-                CsvFieldHeader header = _header[i];
+                CsvFieldHeader header = headers[i];
                 switch (method)
                 {
                     case ParsingMethod.Json:
@@ -104,8 +73,8 @@ namespace CubeCsv
                 }
                 builder.Append(",");
             }
-            builder.Append($"{ bracket.Close }");
-            return builder.ToString().Replace($",{ bracket.Close }", $"{ bracket.Close }");
+            builder.Append($"{bracket.Close}");
+            return builder.ToString().Replace($",{bracket.Close}", $"{bracket.Close}");
         }
         private (string Open, string Close) GetBracket(ParsingMethod method)
         {

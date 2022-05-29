@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using CubeCsv.Processors;
 
@@ -15,5 +16,6 @@ namespace CubeCsv
         public CsvSchema Schema { get; set; }
         public ICsvCellCleaner CellCleaner { get; set; }
         public ICsvRowCleaner RowCleaner { get; set; }
+        public List<string> ColumnExlusions { get; set; } = new List<string>();
     }
 }

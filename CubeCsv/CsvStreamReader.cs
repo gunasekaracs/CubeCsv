@@ -7,18 +7,41 @@ using System.Threading.Tasks;
 
 namespace CubeCsv
 {
-    public sealed class CsvReader : CsvBase, IDisposable
+    public sealed class CsvStreamReader : IDisposable
     {
         private CsvRow _row;
         private int _index = 0;
+        private StreamReader _reader;
+        private CsvConfiguration _configuration = new CsvConfiguration();
+        private CsvHeader _header;
+        private int _skipRowCount = 1;
 
+        public CsvHeader Header { get { return _header; } }
+        public CsvConfiguration Configuration
+        {
+            get { return _configuration; }
+            set { _configuration = value; }
+        }
         public CsvRow Current { get { return _row; } }
 
-        public CsvReader(StreamReader reader, CsvConfiguration configuration) : base(configuration, reader) { }
-        public CsvReader(StreamReader reader, CultureInfo cultureInfo) : base(new CsvConfiguration() { CultureInfo = cultureInfo }, reader) { }
+        public CsvStreamReader(StreamReader reader, CsvConfiguration configuration)
+        {
+            _configuration = configuration;
+            _reader = reader;
+            _header = new CsvHeader(_configuration, _reader);
+            _header.ResolveSchema(_configuration.Delimiter);
+            _skipRowCount = _configuration.SkipRowCount;
+
+        }
+        public CsvStreamReader(StreamReader reader, CultureInfo cultureInfo) : this(reader, new CsvConfiguration() { CultureInfo = cultureInfo }) { }
+
         public async Task<bool> ReadAsync()
         {
-            if (_reader.EndOfStream) return false;
+            if (_reader.EndOfStream)
+            {
+                Reset();
+                return false;
+            }
             if (_index < _skipRowCount)
                 await _reader.ReadLineAsync();
             else
@@ -32,19 +55,26 @@ namespace CubeCsv
         }
         public object GetValue(string name)
         {
-            return _row[name].Value;
+
+            return _row[Header.GetOrdinal(name)]?.Value;
         }
         public T GetValue<T>(string name)
         {
-            var field = _row[name];
+            var field = _row[Header.GetOrdinal(name)];
             if (field.Value is T value)
                 return value;
             throw
-                new CsvInvalidCastException($"Unable to convert type { field.Value.GetType() } into a type of { typeof(T) }");
+                new CsvInvalidCastException($"Unable to convert type {field.Value.GetType()} into a type of {typeof(T)}");
         }
         public string GetValueAsString(string name)
         {
-            return _row[name].Value.ToString();
+            return _row[Header.GetOrdinal(name)]?.Value?.ToString();
+        }
+        public void Reset()
+        {
+            _reader.BaseStream.Position = 0;
+            if (_configuration.HasHeader)
+                _reader.ReadLine();
         }
         public void Dispose()
         {
@@ -55,7 +85,7 @@ namespace CubeCsv
         }
         private void ReadRow(string row)
         {
-            _row = new CsvRow(_header, _configuration.HasHeader);
+            _row = new CsvRow();
             char delimiter = char.Parse(_configuration.Delimiter);
             if (_configuration.RemoveLineBreaks)
                 row = row.Replace(Environment.NewLine, string.Empty);
@@ -63,7 +93,7 @@ namespace CubeCsv
                 row = _configuration.RowCleaner.Clean(row);
             List<string> values = new List<string>(row.Split(delimiter));
             if (values.Count != Header.Count)
-                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has { values.Count } columns and header has { Header.Count }. Row = [{ string.Join(",", values) }] and Header = [{ Header }]");
+                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has {values.Count} columns and header has {Header.Count}. Row = [{string.Join(",", values)}] and Header = [{Header}]");
             int index = 0;
             foreach (string value in values)
                 _row.Add(new CsvField() { Value = ResolveValue(value, Header[index].Schema.Type), Ordinal = index++ });

@@ -17,7 +17,7 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
+                using (var csvReader = new CsvStreamReader(streamReader, CultureInfo.InvariantCulture))
                 {
                     CsvFieldHeader departmentHeader = csvReader.Header[HeaderNames.Department];
                     Assert.IsTrue(departmentHeader.Schema.Name == HeaderNames.Department);

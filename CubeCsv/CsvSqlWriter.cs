@@ -1,23 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CubeCsv
 {
-    public class CsvSqlWriter : CsvSqlBase
+    class CsvSqlWriter : CsvSqlBase
     {
-        private CsvRows _rows;
-        private int _sqlRowBatchSize;
+        private TableDirect _tableDirect;
 
-        public CsvSqlWriter(string table, SqlConnection connection, CsvRows rows, int SqlRowBatchSize, CsvSchema schema = null, List<string> columnExlusions = null)
-            : base(table, connection, schema, columnExlusions)
+        public CsvSqlWriter(string table, SqlConnection connection, TableDirect tableDirect, CsvConfiguration configuration)
+            : base(table, connection, configuration)
         {
-            _rows = rows;
-            _sqlRowBatchSize = SqlRowBatchSize;
+            _tableDirect = tableDirect;
         }
         public async Task<int> WirteRowsToTableAsync()
         {
@@ -30,7 +26,7 @@ namespace CubeCsv
                 count += command.ExecuteNonQuery();
             }
             _connection.Close();
-            return _rows.Count;
+            return count;
         }
         public async Task<List<string>> GenerateSqlAsync()
         {
@@ -38,12 +34,12 @@ namespace CubeCsv
             int count = 1;
             string script;
             StringBuilder builder = await CreateSqlBuilderAsync();
-            foreach (var row in _rows)
+            while (await _tableDirect.ReadAsync())
             {
-                if (!row.HasHeader)
-                    row.Header = _schema.ToHeader();
-                builder.AppendLine($"{ row.ToSql() },");
-                if (count % _sqlRowBatchSize == 0)
+                CsvRow row = _tableDirect.Current;
+
+                builder.AppendLine($"{row.ToSql(_tableDirect.Header)},");
+                if (count % _configuration.SqlRowBatchSize == 0)
                 {
                     script = builder.ToString().Trim();
                     sql.Add(script.Remove(script.Length - 1, 1));
@@ -61,7 +57,7 @@ namespace CubeCsv
         private async Task<StringBuilder> CreateSqlBuilderAsync()
         {
             if (_schema == null) _schema = await GetSchemaAsync();
-            return new StringBuilder($"INSERT INTO \"{ _table }\" ({ string.Join(",", _schema.Select(x => x.Name).ToArray()) }) VALUES { Environment.NewLine }");
+            return new StringBuilder();
         }
     }
 }

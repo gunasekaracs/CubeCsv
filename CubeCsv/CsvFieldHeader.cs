@@ -1,6 +1,6 @@
 namespace CubeCsv
 {
-    public class CsvFieldHeader: CsvOrdinal
+    public class CsvFieldHeader : CsvOrdinal
     {
         public CsvFieldSchema Schema { get; set; }
         public CsvFieldHeader()
@@ -10,7 +10,7 @@ namespace CubeCsv
 
         public override string ToString()
         {
-            return (Schema??new CsvFieldSchema()).ToString();
+            return (Schema ?? new CsvFieldSchema()).ToString();
         }
     }
 }

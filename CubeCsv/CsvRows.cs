@@ -2,7 +2,7 @@
 
 namespace CubeCsv
 {
-    public class CsvRows : List<CsvRow>
+    class CsvRows : List<CsvRow>
     {
     }
 }

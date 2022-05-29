@@ -19,7 +19,7 @@ namespace CubeCsv
             { typeof(DateTime), new List<Type>{ typeof(string) } }
         };
 
-        public CsvFieldHeader this[string name] => this.FirstOrDefault(x => x.Schema.Name == name);
+        public CsvFieldHeader this[string name] => this.SingleOrDefault(x => x.Schema.Name == name);
         public CsvConfiguration Configuration
         {
             get { return _configuration; }
@@ -48,7 +48,7 @@ namespace CubeCsv
                 {
                     string headerDelimiter = _configuration.Delimiter;
                     if (_configuration.HeaderDoubleQuoted)
-                        headerDelimiter = $"\"{ delimiter }\"";
+                        headerDelimiter = $"\"{delimiter}\"";
                     if (_reader.EndOfStream)
                         throw new CsvMissingHeaderException("There is no header row found");
                     string headerLine = _reader.ReadLine();
@@ -100,6 +100,25 @@ namespace CubeCsv
             if (_configuration.HasHeader)
                 _reader.ReadLine();
         }
+        public CsvSchema ToSchema()
+        {
+            CsvSchema schema = new CsvSchema();
+            foreach (CsvFieldHeader header in this)
+                schema.Add(header.Schema);
+            return schema;
+        }
+        public override string ToString()
+        {
+            return string.Join(",", this);
+        }
+        public int GetOrdinal(string name)
+        {
+            var header = this[name];
+            if (header == null)
+                throw new CsvMissingHeaderException($"Unable to find the [{name}] in the headers collection of [{this}]");
+            return header.Ordinal;
+        }
+
         private string Sanitize(string headerLine, string delimiter)
         {
             string marker = "##%##";
@@ -135,17 +154,6 @@ namespace CubeCsv
                     header.Schema.Type = type;
             }
             return header;
-        }
-        public CsvSchema ToSchema()
-        {
-            CsvSchema schema = new CsvSchema();
-            foreach (CsvFieldHeader header in this)
-                schema.Add(header.Schema);
-            return schema;
-        }
-        public override string ToString()
-        {
-            return string.Join(",", this);
         }
     }
 }

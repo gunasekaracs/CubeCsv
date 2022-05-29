@@ -16,15 +16,14 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csvFile = new CsvFile(streamReader, new CsvConfiguration()
+                using (var csvFile = new TableDirect(streamReader, new CsvConfiguration()
                 {
                     CultureInfo = CultureInfo.InvariantCulture,
                     Delimiter = ";",
                     HasHeader = false
                 }))
                 {
-                    csvFile.ReadAllRowsAsync().Wait();
-                    Assert.IsTrue(csvFile.Count == 9);
+                    Assert.IsTrue(csvFile.CountAsync().Result == 9);
                 }
             }
         }

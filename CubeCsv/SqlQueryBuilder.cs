@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using CubeCsv.Exceptions;
 
 namespace CubeCsv
@@ -7,7 +8,7 @@ namespace CubeCsv
     {
         public string GetTableExistsSql(string table)
         {
-            return $@"IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{ table }'))
+            return $@"IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{table}'))
                 BEGIN
 	                SELECT 'true';
                 END
@@ -18,7 +19,7 @@ namespace CubeCsv
         }
         public string GetSchemaReadingSql(string table)
         {
-            return $"SELECT * FROM \"{ table }\" WHERE 1 = 2";
+            return $"SELECT * FROM \"{table}\" WHERE 1 = 2";
         }
         public string GetSelectStatement(string table, string where)
         {
@@ -26,11 +27,15 @@ namespace CubeCsv
             {
                 where = where.Trim();
                 if (!where.StartsWith("WHERE", StringComparison.OrdinalIgnoreCase))
-                    where = $"WHERE { where }";
+                    where = $"WHERE {where}";
             }
             if (string.IsNullOrEmpty(table))
                 throw new CsvInvalidSqlException("You have to provide a table name in order to read from sql table into csv");
-            return $"SELECT * FROM \"{ table }\" { where }".Trim();
+            return $"SELECT * FROM \"{table}\" {where}".Trim();
+        }
+        public string GetInsertString(CsvSchema schema, string table)
+        {
+            return $"INSERT INTO \"{table}\" ({string.Join(",", schema.Select(x => x.Name).ToArray())}) VALUES {Environment.NewLine}";
         }
     }
 }

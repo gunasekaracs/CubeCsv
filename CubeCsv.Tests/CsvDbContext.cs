@@ -35,7 +35,7 @@ namespace CubeCsv.Tests
                         ('Charith', 'Gunasekara', 42, '1980-07-20'),
                         ('Dilshan', 'Amarasinghe', 34, '1988-01-10'),
                         ('Kumanan', 'Panchalingam', 30, '1992-05-02'),
-                        ('Ashmina', 'Mohomadeen', 30, '1992-05-20'),
+                        ('Azmina', 'Mohomadeen', 30, '1992-05-20'),
                         ('Eswar', 'Raj', 30, '1992-08-05')";
 
             command = new SqliteCommand(sql, connection);

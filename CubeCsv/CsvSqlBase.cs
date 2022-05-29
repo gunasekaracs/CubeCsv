@@ -7,20 +7,20 @@ using CubeCsv.Exceptions;
 
 namespace CubeCsv
 {
-    public class CsvSqlBase
+    class CsvSqlBase
     {
         protected string _table;
         protected SqlConnection _connection;
-        protected List<string> _columnExlusions;
+        protected CsvConfiguration _configuration;
         protected CsvSchema _schema;
         protected ISqlQueryBuilder _queryBuilder = new SqlQueryBuilder();
 
-        public CsvSqlBase(string table, SqlConnection connection, CsvSchema schema = null, List<string> columnExlusions = null)
+        public CsvSqlBase(string table, SqlConnection connection, CsvConfiguration configuration)
         {
             _table = table;
             _connection = connection;
-            _schema = schema;
-            _columnExlusions = columnExlusions ?? new List<string>();
+            _configuration = configuration;
+            _schema = configuration.Schema;
             if (_connection == null)
                 throw new CsvNullConnectionException("You have to specify a not null sql connection");
         }
@@ -40,7 +40,7 @@ namespace CubeCsv
                 foreach (DataRow row in schemaTable.Rows)
                 {
                     string name = row[0].ToString();
-                    if (_columnExlusions.Exists(x => x == name)) continue;
+                    if (_configuration.ColumnExlusions.Exists(x => x == name)) continue;
                     schema.Add(new CsvFieldSchema()
                     {
                         Name = name,

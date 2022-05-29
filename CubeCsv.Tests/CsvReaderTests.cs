@@ -19,7 +19,7 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
+                using (var csvReader = new CsvStreamReader(streamReader, CultureInfo.InvariantCulture))
                 {
                     for (int i = 0; i < 3; i++)
                         csvReader.ReadAsync().Wait();
@@ -46,7 +46,7 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
+                using (var csvReader = new CsvStreamReader(streamReader, CultureInfo.InvariantCulture))
                 {
                     csvReader.ReadAsync().Wait();
                     Assert.IsTrue(csvReader.GetValue<string>(HeaderNames.FullName) == "Test");

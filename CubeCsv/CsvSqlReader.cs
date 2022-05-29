@@ -1,23 +1,24 @@
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace CubeCsv
 {
-    public class CsvSqlReader : CsvSqlBase
+    class CsvSqlReader : CsvSqlBase
     {
         private string _whereClause { get; set; }
 
-        public CsvSqlReader(string table, SqlConnection connection, string whereClause, CsvSchema schema = null, List<string> columnExlusions = null)
-            : base(table, connection, schema, columnExlusions)
+        public CsvSqlReader(string table, SqlConnection connection, string whereClause, CsvConfiguration configuration)
+            : base(table, connection, configuration)
         {
             _whereClause = whereClause;
         }
 
-        public async Task<CsvFile> ReadRowsFromTableAsync()
+        public async Task<TableDirect> ReadRowsFromTableAsync()
         {
-            CsvRows rows = new CsvRows();
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
             if (_schema == null) _schema = await GetSchemaAsync();
             CsvHeader header = _schema.ToHeader();
             if (_connection.State == ConnectionState.Closed)
@@ -28,12 +29,15 @@ namespace CubeCsv
                 {
                     while (reader.Read())
                     {
-                        CsvRow row = new CsvRow(header, true);
+                        CsvRow row = new CsvRow();
                         foreach (var column in header)
                             row.Add(new CsvField() { Ordinal = column.Ordinal, Value = reader.GetValue(reader.GetOrdinal(column.Schema.Name)) });
-                        rows.Add(row);
+                        writer.WriteLine(row);
                     }
-                    return new CsvFile(rows, header);
+                    writer.Flush();
+                    writer.Close();
+                    _configuration.Schema = _schema;
+                    return new TableDirect(new StreamReader(stream), _configuration);
                 }
             }
         }

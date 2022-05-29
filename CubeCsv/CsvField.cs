@@ -9,7 +9,9 @@ namespace CubeCsv
 
         public override string ToString()
         {
-            return (Value ?? string.Empty).ToString();
+            string value = (Value ?? string.Empty).ToString();
+            if (value.Contains(",")) return $"\"{value}\"";
+            return value;
         }
         public string ToSql(CsvFieldHeader header)
         {
@@ -18,31 +20,31 @@ namespace CubeCsv
             if (type == typeof(int) || type == typeof(float) || type == typeof(double))
                 builder.Append(Value);
             else
-                builder.Append($"'{ Value }'");
+                builder.Append($"'{Value}'");
             return builder.ToString();
         }
         public string ToJson(CsvFieldHeader header)
         {
             StringBuilder builder = new StringBuilder();
             Type type = header.Schema.Type;
-            builder.Append($"\"{ header.Schema.Name }\":");
+            builder.Append($"\"{header.Schema.Name}\":");
             if (type == typeof(int) || type == typeof(float) || type == typeof(double))
-                builder.Append($"{ Value }");
+                builder.Append($"{Value}");
             else
-                builder.Append($"\"{ Value }\"");
+                builder.Append($"\"{Value}\"");
             return builder.ToString();
         }
-        public void Encrypt(string key)
+        public void Encrypt(string key, CsvCryptoHandler handler)
         {
             if (Value == null)
                 throw new ArgumentNullException("Value of the csv field is null, so unable to encrypt, please review");
-            Value = new CsvCryptoHandler().Encrypt(Value.ToString(), key);
+            Value = handler.Encrypt(Value.ToString(), key);
         }
-        public void Decript(string key)
+        public void Decript(string key, CsvCryptoHandler handler)
         {
             if (Value == null)
                 throw new ArgumentNullException("Value of the csv field is null, so unable to encrypt, please review");
-            Value = new CsvCryptoHandler().Decrypt(Value.ToString(), key);
+            Value = handler.Decrypt(Value.ToString(), key);
         }
     }
 }
