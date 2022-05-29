@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace CubeCsv
 {
     public interface ISqlQueryBuilder
@@ -5,5 +7,7 @@ namespace CubeCsv
         string GetTableExistsSql(string table);
         string GetSchemaReadingSql(string table);
         string GetSelectStatement(string table, string where);
+        string GetInsertString(CsvSchema schema, string table);
+        CsvFieldSchema GetFieldSchema(DataRow row);
     }
 }

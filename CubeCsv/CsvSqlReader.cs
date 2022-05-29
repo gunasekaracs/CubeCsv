@@ -1,6 +1,5 @@
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ namespace CubeCsv
     {
         private string _whereClause { get; set; }
 
-        public CsvSqlReader(string table, SqlConnection connection, string whereClause, CsvConfiguration configuration)
+        public CsvSqlReader(string table, DbConnection connection, string whereClause, CsvConfiguration configuration)
             : base(table, connection, configuration)
         {
             _whereClause = whereClause;
@@ -35,9 +34,7 @@ namespace CubeCsv
                             row.Add(new CsvField() { Ordinal = column.Ordinal, Value = reader.GetValue(reader.GetOrdinal(column.Schema.Name)) });
                         writer.WriteLine(row);
                     }
-                    writer.Flush();
-                    writer.Close();
-                    _configuration.Schema = _schema;
+                    _configuration.Schema = _schema;                    
                     return new TableDirect(new StreamReader(stream), _configuration);
                 }
             }

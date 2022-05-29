@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,7 +10,7 @@ namespace CubeCsv
     {
         private TableDirect _tableDirect;
 
-        public CsvSqlWriter(string table, SqlConnection connection, TableDirect tableDirect, CsvConfiguration configuration)
+        public CsvSqlWriter(string table, DbConnection connection, TableDirect tableDirect, CsvConfiguration configuration)
             : base(table, connection, configuration)
         {
             _tableDirect = tableDirect;
@@ -57,7 +57,7 @@ namespace CubeCsv
         private async Task<StringBuilder> CreateSqlBuilderAsync()
         {
             if (_schema == null) _schema = await GetSchemaAsync();
-            return new StringBuilder();
+            return new StringBuilder(_queryBuilder.GetInsertString(_schema, _table));
         }
     }
 }

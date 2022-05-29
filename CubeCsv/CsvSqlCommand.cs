@@ -10,14 +10,19 @@ namespace CubeCsv
     class CsvSqlCommand : IDisposable
     {
         private DbCommand command;
-
+        private ISqlQueryBuilder queryBuilder;
+        public ISqlQueryBuilder QueryBuilder => queryBuilder;
         public CsvSqlCommand(string sql, DbConnection connection)
         {
             if (connection is SqlConnection sqlConnection)
+            {
+                queryBuilder = new TsqlQueryBuilder();
                 command = new SqlCommand(sql, sqlConnection);
-            if (connection is SqliteConnection sqliteConnection)
+            }
+            else if (connection is SqliteConnection sqliteConnection)
                 command = new SqliteCommand(sql, sqliteConnection);
-            throw new CsvInvalidConnectionException("Unrecognized connection type");
+            else
+                throw new CsvInvalidConnectionException("Unrecognized connection type");
         }
         public async Task<object> ExecuteScalarAsync()
         {

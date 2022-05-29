@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
@@ -11,6 +12,7 @@ namespace CubeCsv
     {
         private CsvStreamReader _csvStreamReader;
         private CsvSqlWriter _csvSqlWriter;
+        private CsvSqlReader _csvSqlReader;
         private int _count;
         public bool Encrypted { get; private set; }
 
@@ -25,9 +27,14 @@ namespace CubeCsv
         {
             _csvStreamReader = new CsvStreamReader(reader, new CsvConfiguration() { CultureInfo = cultureInfo });
         }
-        public TableDirect(string table, SqlConnection connection, CsvConfiguration configuration)
+        public TableDirect(string table, DbConnection connection, CsvConfiguration configuration)
         {
             _csvSqlWriter = new CsvSqlWriter(table, connection, this, configuration);
+
+        }
+        public TableDirect(string table, DbConnection connection, string whereClasue, CsvConfiguration configuration)
+        {
+            _csvSqlReader = new CsvSqlReader(table, connection, whereClasue, configuration);
         }
 
         public async Task<bool> ReadAsync()
@@ -107,6 +114,7 @@ namespace CubeCsv
             return this;
         }
         public async Task<int> WirteRowsToTableAsync() => await _csvSqlWriter.WirteRowsToTableAsync();
+        public async Task<TableDirect> ReadRowsFromTableAsync() => await _csvSqlReader.ReadRowsFromTableAsync();
         public void AddHeader(int location, CsvFieldHeader header)
         {
             Header.Insert(location, header);

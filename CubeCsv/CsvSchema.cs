@@ -7,7 +7,7 @@ namespace CubeCsv
         internal CsvHeader ToHeader()
         {
             CsvHeader header = new CsvHeader();
-            foreach(CsvFieldSchema field in this)
+            foreach(CsvFieldSchema field in this)            
                 header.Add(new CsvFieldHeader()
                 {
                     Ordinal = IndexOf(field),
