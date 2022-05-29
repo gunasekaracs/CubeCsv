@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Threading.Tasks;
 using CubeCsv.Exceptions;
 
@@ -10,15 +9,15 @@ namespace CubeCsv
     class CsvSqlBase
     {
         protected string _table;
-        protected SqlConnection _connection;
+        protected DbConnection _connection;
         protected CsvConfiguration _configuration;
         protected CsvSchema _schema;
         protected ISqlQueryBuilder _queryBuilder = new SqlQueryBuilder();
 
-        public CsvSqlBase(string table, SqlConnection connection, CsvConfiguration configuration)
+        public CsvSqlBase(string table, DbConnection connection, CsvConfiguration configuration)
         {
-            _table = table;
             _connection = connection;
+            _table = table;
             _configuration = configuration;
             _schema = configuration.Schema;
             if (_connection == null)
@@ -30,11 +29,12 @@ namespace CubeCsv
                 await _connection.OpenAsync();
             
             string sql = _queryBuilder.GetTableExistsSql(_table);;
-            SqlCommand command = new SqlCommand(sql, _connection);
+            CsvSqlCommand command = new CsvSqlCommand(sql, _connection);
+  
             if (bool.TryParse((await command.ExecuteScalarAsync() ?? string.Empty).ToString(), out var exists) && exists)
             {
-                command = new SqlCommand(_queryBuilder.GetSchemaReadingSql(_table), _connection);
-                var reader = command.ExecuteReader();
+                command = new CsvSqlCommand(_queryBuilder.GetSchemaReadingSql(_table), _connection);
+                var reader = await command.ExecuteReaderAsync();
                 var schemaTable = reader.GetSchemaTable();
                 CsvSchema schema = new CsvSchema();
                 foreach (DataRow row in schemaTable.Rows)

@@ -22,8 +22,8 @@ namespace CubeCsv
             {
                 if (_connection.State == ConnectionState.Closed)
                     await _connection.OpenAsync();
-                SqlCommand command = new SqlCommand(sql, _connection);
-                count += command.ExecuteNonQuery();
+                CsvSqlCommand command = new CsvSqlCommand(sql, _connection);
+                count += await command.ExecuteNonQueryAsync();
             }
             _connection.Close();
             return count;

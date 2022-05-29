@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
@@ -20,12 +21,12 @@ namespace CubeCsv
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             if (_schema == null) _schema = await GetSchemaAsync();
-            CsvHeader header = _schema.ToHeader();
+            CsvHeader header = _schema.ToHeader();            
             if (_connection.State == ConnectionState.Closed)
                 await _connection.OpenAsync();
-            using (SqlCommand command = new SqlCommand(_queryBuilder.GetSelectStatement(_table, _whereClause), _connection))
+            using (CsvSqlCommand command = new CsvSqlCommand(_queryBuilder.GetSelectStatement(_table, _whereClause), _connection))
             {
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (DbDataReader reader = await command.ExecuteReaderAsync())
                 {
                     while (reader.Read())
                     {
