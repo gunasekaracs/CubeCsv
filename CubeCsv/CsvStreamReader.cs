@@ -10,11 +10,11 @@ namespace CubeCsv
     public sealed class CsvStreamReader : IDisposable
     {
         private CsvRow _row;
-        private int _index = 0;
+        private int _location = 0;
         private StreamReader _reader;
         private CsvConfiguration _configuration = new CsvConfiguration();
         private CsvHeader _header;
-        private int _skipRowCount = 1;
+        private int _skipRowCount = 1;        
 
         public CsvHeader Header { get { return _header; } }
         public CsvConfiguration Configuration
@@ -23,6 +23,7 @@ namespace CubeCsv
             set { _configuration = value; }
         }
         public CsvRow Current { get { return _row; } }
+        public int Location => _location - 1;
 
         public CsvStreamReader(StreamReader reader, CsvConfiguration configuration)
         {
@@ -42,7 +43,7 @@ namespace CubeCsv
                 Reset();
                 return false;
             }
-            if (_index < _skipRowCount)
+            if (_location < _skipRowCount)
                 await _reader.ReadLineAsync();
             else
             {
@@ -50,7 +51,7 @@ namespace CubeCsv
                 if (!string.IsNullOrWhiteSpace(row))
                     ReadRow(row);
             }
-            _index++;
+            _location++;
             return true;
         }
         public object GetValue(string name)
@@ -72,6 +73,7 @@ namespace CubeCsv
         }
         public void Reset()
         {
+            _location = 0;
             _reader.BaseStream.Seek(0, SeekOrigin.Begin);
             if (_configuration.HasHeader)
                 _reader.ReadLine();
@@ -107,6 +109,7 @@ namespace CubeCsv
             if (type == typeof(DateTime)) return DateTime.Parse(value);
             if (type == typeof(double)) return double.Parse(value);
             if (type == typeof(float)) return float.Parse(value);
+            if (type == typeof(long)) return long.Parse(value);
             if (type == typeof(int)) return int.Parse(value);
             return value.Trim();
         }

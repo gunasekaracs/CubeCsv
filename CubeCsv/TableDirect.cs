@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -18,6 +17,7 @@ namespace CubeCsv
 
         public CsvRow Current => _csvStreamReader.Current;
         public CsvHeader Header => _csvStreamReader.Header;
+        public int Location => _csvStreamReader.Location;
 
         public TableDirect(StreamReader reader, CsvConfiguration configuration)
         {

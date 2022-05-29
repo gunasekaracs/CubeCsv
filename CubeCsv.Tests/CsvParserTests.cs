@@ -17,35 +17,35 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csvReader = new CsvStreamReader(streamReader, CultureInfo.InvariantCulture))
+                using (var tableDirect = new TableDirect(streamReader, new CsvConfiguration() { HasHeader = true, CultureInfo = CultureInfo.InvariantCulture }))
                 {
-                    CsvFieldHeader departmentHeader = csvReader.Header[HeaderNames.Department];
+                    CsvFieldHeader departmentHeader = tableDirect.Header[HeaderNames.Department];
                     Assert.IsTrue(departmentHeader.Schema.Name == HeaderNames.Department);
                     Assert.IsTrue(departmentHeader.Ordinal == 0);
                     Assert.IsTrue(departmentHeader.Schema.Type == typeof(string));
 
-                    CsvFieldHeader firstNameHeader = csvReader.Header[HeaderNames.FirstName];
+                    CsvFieldHeader firstNameHeader = tableDirect.Header[HeaderNames.FirstName];
                     Assert.IsTrue(firstNameHeader.Schema.Name == HeaderNames.FirstName);
                     Assert.IsTrue(firstNameHeader.Ordinal == 1);
                     Assert.IsTrue(firstNameHeader.Schema.Type == typeof(string));
 
-                    CsvFieldHeader lastNameHeader = csvReader.Header[HeaderNames.LastName];
+                    CsvFieldHeader lastNameHeader = tableDirect.Header[HeaderNames.LastName];
                     Assert.IsTrue(lastNameHeader.Schema.Name == HeaderNames.LastName);
                     Assert.IsTrue(lastNameHeader.Ordinal == 2);
                     Assert.IsTrue(lastNameHeader.Schema.Length == 12);
                     Assert.IsTrue(lastNameHeader.Schema.Type == typeof(string));
 
-                    CsvFieldHeader dateOrBirthHeader = csvReader.Header[HeaderNames.DateOrBirth];
+                    CsvFieldHeader dateOrBirthHeader = tableDirect.Header[HeaderNames.DateOrBirth];
                     Assert.IsTrue(dateOrBirthHeader.Schema.Name == HeaderNames.DateOrBirth);
                     Assert.IsTrue(dateOrBirthHeader.Ordinal == 3);
                     Assert.IsTrue(dateOrBirthHeader.Schema.Type == typeof(DateTime));
 
-                    CsvFieldHeader ageHeader = csvReader.Header[HeaderNames.Age];
+                    CsvFieldHeader ageHeader = tableDirect.Header[HeaderNames.Age];
                     Assert.IsTrue(ageHeader.Schema.Name == HeaderNames.Age);
                     Assert.IsTrue(ageHeader.Ordinal == 4);
                     Assert.IsTrue(ageHeader.Schema.Type == typeof(int));
 
-                    CsvFieldHeader worthHeader = csvReader.Header[HeaderNames.Worth];
+                    CsvFieldHeader worthHeader = tableDirect.Header[HeaderNames.Worth];
                     Assert.IsTrue(worthHeader.Schema.Name == HeaderNames.Worth);
                     Assert.IsTrue(worthHeader.Ordinal == 5);
                     Assert.IsTrue(worthHeader.Schema.Type == typeof(float));
