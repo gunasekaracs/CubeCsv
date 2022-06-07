@@ -19,9 +19,9 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csv = new TableDirect(streamReader, new CsvConfiguration() { HasHeader = true, CultureInfo = CultureInfo.InvariantCulture }))
+                using (var csv = new CsvFile(streamReader, new CsvConfiguration() { HasHeader = true, CultureInfo = CultureInfo.InvariantCulture }))
                 {
-                    Assert.IsTrue(csv.Validate(
+                    Assert.IsTrue(csv.ValidateSchema(
                         new CsvFieldSchema(HeaderNames.Department, typeof(string), 3),
                         new CsvFieldSchema(HeaderNames.FirstName, typeof(string)),
                         new CsvFieldSchema(HeaderNames.LastName, typeof(string), 12),
@@ -38,9 +38,9 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csv = new TableDirect(streamReader, new CsvConfiguration() { HasHeader = true, CultureInfo = CultureInfo.InvariantCulture }))
+                using (var csv = new CsvFile(streamReader, new CsvConfiguration() { HasHeader = true, CultureInfo = CultureInfo.InvariantCulture }))
                 {
-                    var result = csv.Validate(
+                    var result = csv.ValidateSchema(
                         new CsvFieldSchema(HeaderNames.Department, typeof(string), 3),
                         new CsvFieldSchema(HeaderNames.FirstName, typeof(string)),
                         new CsvFieldSchema(HeaderNames.LastName, typeof(string), 12),

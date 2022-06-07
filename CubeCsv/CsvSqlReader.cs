@@ -8,14 +8,16 @@ namespace CubeCsv
     class CsvSqlReader : CsvSqlBase
     {
         private string _whereClause { get; set; }
+        private string _orderBy { get; set; }
 
-        public CsvSqlReader(string table, DbConnection connection, string whereClause, CsvConfiguration configuration)
+        public CsvSqlReader(string table, DbConnection connection, string whereClause, string orderBy,  CsvConfiguration configuration)
             : base(table, connection, configuration)
         {
             _whereClause = whereClause;
+            _orderBy = orderBy;
         }
 
-        public async Task<TableDirect> ReadRowsFromTableAsync()
+        public async Task<CsvFile> ReadRowsFromTableAsync()
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
@@ -24,7 +26,9 @@ namespace CubeCsv
             CsvHeader header = _schema.ToHeader();
             if (_connection.State == ConnectionState.Closed)
                 await _connection.OpenAsync();
-            using (CsvSqlCommand command = new CsvSqlCommand(_queryBuilder.GetSelectStatement(_table, _whereClause), _connection))
+            for (int i = 0; i < _configuration.SkipRowCount; i++)
+                writer.WriteLine(string.Empty);
+            using (CsvSqlCommand command = new CsvSqlCommand(_queryBuilder.GetSelectStatement(_table, _whereClause, _orderBy), _connection))
             {
                 using (DbDataReader dataReader = await command.ExecuteReaderAsync())
                 {
@@ -40,7 +44,7 @@ namespace CubeCsv
                     stream.Seek(0, SeekOrigin.Begin);
                 }
                 _connection.Close();
-                return new TableDirect(reader, _configuration);
+                return new CsvFile(reader, _configuration);
             }
         }
     }

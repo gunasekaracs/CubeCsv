@@ -16,7 +16,7 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csvFile = new TableDirect(streamReader, new CsvConfiguration()
+                using (var csvFile = new CsvFile(streamReader, new CsvConfiguration()
                 {
                     CultureInfo = CultureInfo.InvariantCulture,
                     Delimiter = ";",

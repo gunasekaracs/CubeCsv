@@ -8,9 +8,9 @@ namespace CubeCsv
 {
     class CsvSqlWriter : CsvSqlBase
     {
-        private TableDirect _tableDirect;
+        private CsvFile _tableDirect;
 
-        public CsvSqlWriter(string table, DbConnection connection, TableDirect tableDirect, CsvConfiguration configuration)
+        public CsvSqlWriter(string table, DbConnection connection, CsvFile tableDirect, CsvConfiguration configuration)
             : base(table, connection, configuration)
         {
             _tableDirect = tableDirect;

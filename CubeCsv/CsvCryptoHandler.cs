@@ -54,11 +54,13 @@ namespace CubeCsv
             return Encoding.Unicode.GetString(rawPlainText);
         }
 
-        public async Task<TableDirect> ConvertCrypto(bool encrypt, TableDirect tableDirect, string key, CsvHeader header, CsvConfiguration configuration, string[] columnExclusions = null)
+        public async Task<CsvFile> ConvertCrypto(bool encrypt, CsvFile tableDirect, string key, CsvHeader header, CsvConfiguration configuration, string[] columnExclusions = null)
         {
             MemoryStream stream = new MemoryStream();
             StreamReader reader = new StreamReader(stream);
             StreamWriter writer = new StreamWriter(stream);
+            for (int i = 0; i < configuration.SkipRowCount; i++)
+                writer.WriteLine(string.Empty);
             while (await tableDirect.ReadAsync())
             {
                 if(encrypt) tableDirect.Current.Encrypt(key, columnExclusions, this, header);
@@ -67,7 +69,7 @@ namespace CubeCsv
             }
             writer.Flush();
             tableDirect.Dispose();
-            return new TableDirect(reader, configuration);
+            return new CsvFile(reader, configuration);
         }
 
         #endregion

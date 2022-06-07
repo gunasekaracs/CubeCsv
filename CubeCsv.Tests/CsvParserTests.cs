@@ -17,7 +17,7 @@ namespace CubeCsv.Tests
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var tableDirect = new TableDirect(streamReader, new CsvConfiguration() { HasHeader = true, CultureInfo = CultureInfo.InvariantCulture }))
+                using (var tableDirect = new CsvFile(streamReader, new CsvConfiguration() { HasHeader = true, CultureInfo = CultureInfo.InvariantCulture }))
                 {
                     CsvFieldHeader departmentHeader = tableDirect.Header[HeaderNames.Department];
                     Assert.IsTrue(departmentHeader.Schema.Name == HeaderNames.Department);

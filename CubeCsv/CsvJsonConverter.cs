@@ -6,16 +6,16 @@ namespace CubeCsv
     class CsvJsonConverter
     {
         private CsvConfiguration _configuration;
-        private TableDirect _tableDirect;
+        private CsvFile _tableDirect;
         private string _columnName;
 
-        public CsvJsonConverter(string columnName, TableDirect tableDirect, CsvConfiguration configuration)
+        public CsvJsonConverter(string columnName, CsvFile tableDirect, CsvConfiguration configuration)
         {
             _columnName = columnName;
             _configuration = configuration;
             _tableDirect = tableDirect;
         }
-        public async Task<TableDirect> ConvertToJsonRowCollectionAsync()
+        public async Task<CsvFile> ConvertToJsonRowCollectionAsync()
         {
             var schema = new CsvSchema();
             schema.Add(new CsvFieldSchema(_columnName, typeof(string)));
@@ -23,6 +23,8 @@ namespace CubeCsv
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             StreamReader reader = new StreamReader(stream);
+            for (int i = 0; i < _configuration.SkipRowCount; i++)
+                writer.WriteLine(string.Empty);
             while (await _tableDirect.ReadAsync())
             {
                 var row = new CsvRow();
@@ -31,7 +33,7 @@ namespace CubeCsv
             }
             writer.Flush();
             _configuration.Schema = schema;
-            return new TableDirect(reader, _configuration);
+            return new CsvFile(reader, _configuration);
         }
     }
 }

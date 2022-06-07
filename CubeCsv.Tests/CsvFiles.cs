@@ -38,6 +38,18 @@
                 OPS1;TW Market OPS team 1;T123470;;2010/01/05
                 OPS2;TW Market OPS team 2;T123471;;2010/01/05
                 OPS3;TW Market OPS team 3;T123472;;2010/01/05";
+        public static string FlatFileWithIncorrectDataTypeOnLastColumnsRowEleven =
+               @"UBS-123
+                 UBS-234
+                 UBS-345
+                 UBS-456
+                 UBS-567
+                 UBS-678
+                 UBS-789
+                 UBS-890
+                 UBS-321
+                 UBS-432
+                 543";
     }
 
 }

@@ -38,7 +38,7 @@ namespace CubeCsv
                 throw new CsvOutBoundException("Location is out of bounds");
             CsvField field = this[location];
             if (header != null && header.Schema.Type != value.GetType())
-                throw new CsvInvalidCastException($"Schema type {header.Schema.Type}and value type [{value.GetType()}] does not match");
+                throw new CsvInvalidCastException($"Schema type {header.Schema.Type} and value type [{value.GetType()}] does not match");
             field.Value = value;
         }
         internal void Encrypt(string key, string[] columnExclusions, CsvCryptoHandler handler, CsvHeader header)

@@ -6,7 +6,7 @@ namespace CubeCsv
 {
     class CsvColumnManager
     {
-        public async Task<TableDirect> AddColumnWithValue(TableDirect tableDirect, CsvConfiguration configuration, int location, CsvFieldSchema schema, object value)
+        public async Task<CsvFile> AddColumnWithValue(CsvFile tableDirect, CsvConfiguration configuration, int location, CsvFieldSchema schema, object value)
         {
             if (value == null)
                 throw new CsvNullValueException("Value cannot be null");
@@ -22,6 +22,8 @@ namespace CubeCsv
             MemoryStream stream = new MemoryStream();
             StreamReader reader = new StreamReader(stream);
             StreamWriter writer = new StreamWriter(stream);
+            for (int i = 0; i < configuration.SkipRowCount; i++)
+                writer.WriteLine(string.Empty);
             while (await tableDirect.ReadAsync())
             {
                 tableDirect.Current.Insert(location, new CsvField() { Value = value });
@@ -31,7 +33,7 @@ namespace CubeCsv
             tableDirect.AddHeader(location, header);
             configuration.Schema = tableDirect.Header.ToSchema();
             tableDirect.Dispose();
-            return new TableDirect(reader, configuration);
+            return new CsvFile(reader, configuration);
         }
     }
 }

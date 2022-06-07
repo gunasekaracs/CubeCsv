@@ -22,17 +22,13 @@ namespace CubeCsv
         {
             return $"SELECT * FROM \"{table}\" WHERE 1 = 2";
         }
-        public virtual string GetSelectStatement(string table, string where)
+        public virtual string GetSelectStatement(string table, string where, string orderBy)
         {
-            if (!string.IsNullOrEmpty(where))
-            {
-                where = where.Trim();
-                if (!where.StartsWith("WHERE", StringComparison.OrdinalIgnoreCase))
-                    where = $"WHERE {where}";
-            }
+            where = Sanatize("WHERE", where);
+            orderBy = Sanatize("ORDER BY", orderBy);
             if (string.IsNullOrEmpty(table))
-                throw new CsvInvalidSqlException("You have to provide a table name in order to read from sql table into csv");
-            return $"SELECT * FROM \"{table}\" {where}".Trim();
+                throw new CsvInvalidSqlException("You have to provide a table name in order to read from sql table");
+            return $"SELECT * FROM \"{table}\"{where}{orderBy}".Trim();
         }
         public virtual string GetInsertString(CsvSchema schema, string table)
         {
@@ -48,6 +44,17 @@ namespace CubeCsv
             if (schema.Type == typeof(string))
                 schema.Length = schema.Length = int.Parse(row[4].ToString());
             return schema;
+        }
+
+        private string Sanatize(string operation, string condition)
+        {
+            if (string.IsNullOrEmpty(condition)) return condition;
+            condition = condition.Trim();
+            if (!condition.StartsWith(operation, StringComparison.OrdinalIgnoreCase))
+                condition = $" {operation} {condition}";
+            if (!condition.StartsWith(" "))
+                condition = $" {condition}";
+            return condition;
         }
     }
 }

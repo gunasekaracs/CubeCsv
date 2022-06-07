@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace CubeCsv.Tests
 {
@@ -12,9 +11,10 @@ namespace CubeCsv.Tests
             CsvDbContext context = new CsvDbContext();
             context.Seed();
 
-            TableDirect tableDirect = new TableDirect(
+            CsvFile tableDirect = new CsvFile(
                 CsvSqlConstants.EmployeesTableName,
                 context.CreateConnection(),
+                string.Empty,
                 string.Empty,
                 new CsvConfiguration() { ColumnExlusions = new() { "Id" } });
 

@@ -7,6 +7,7 @@ namespace CubeCsv
         public string Name { get; set; }
         public Type Type { get; set; }
         public int Length { get; set; } = 0;
+        public CsvFieldValidator Validator { get; set; }
 
         public CsvFieldSchema() { }
         public CsvFieldSchema(string name)

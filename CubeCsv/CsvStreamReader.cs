@@ -17,6 +17,7 @@ namespace CubeCsv
         private CsvConfiguration _configuration = new CsvConfiguration();
         private CsvHeader _header;
         private int _skipRowCount = 0;
+        private int _count;
         private char comma = '∙';
 
         public CsvHeader Header { get { return _header; } }
@@ -47,14 +48,22 @@ namespace CubeCsv
                 Reset();
                 return false;
             }
-            if (_location < _skipRowCount)
-                await _reader.ReadLineAsync();
-            else
+
+            while (_location < _skipRowCount)
             {
-                string row = await _reader.ReadLineAsync();
-                if (!string.IsNullOrWhiteSpace(row))
-                    ReadRow(row);
+                await _reader.ReadLineAsync();
+                _location++;
+                if (_reader.EndOfStream)
+                {
+                    Reset();
+                    return false;
+                }
             }
+
+            string row = await _reader.ReadLineAsync();
+            if (!string.IsNullOrWhiteSpace(row))
+                ReadRow(row);
+
             _location++;
             return true;
         }
@@ -75,6 +84,14 @@ namespace CubeCsv
         {
             return _row[Header.GetOrdinal(name)]?.Value?.ToString();
         }
+        public async Task<int> CountAsync()
+        {
+            if (_count > 0) return _count;
+            Reset();
+            while (await ReadAsync())
+                _count++;
+            return _count;
+        }
         public void Reset()
         {
             _location = 0;
@@ -88,6 +105,13 @@ namespace CubeCsv
             _reader = null;
             _configuration = null;
             _header = null;
+        }
+        public void SetValue(string name, object value)
+        {
+            var header = Header["name"];
+            if (header == null)
+                throw new CsvMissingHeaderException("Header cannot be null");
+            Current.SetValue(Header.GetOrdinal(name), header, value);
         }
         private void ReadRow(string row)
         {
@@ -118,11 +142,10 @@ namespace CubeCsv
             if (type == typeof(int)) return int.Parse(value);
             return value.Trim();
         }
-
         private List<int> GetQuotedCommas(string value, char delimiter)
         {
             bool quoted = false;
-            List<int> indexes = new();
+            var indexes = new List<int>();
 
             for (int i = 0; i < value.Length; i++)
             {
@@ -133,12 +156,11 @@ namespace CubeCsv
 
             return indexes;
         }
-
         private string ReplaceRequiredCommas(string value, char delimiter)
         {
             List<int> indexes = GetQuotedCommas(value, delimiter);
 
-            StringBuilder builder = new(value);
+            var builder = new StringBuilder(value);
             foreach (int i in indexes)
                 builder[i] = comma;
             value = builder.ToString();

@@ -6,20 +6,22 @@ namespace CubeCsv
     class CsvHashGenerator
     {
         private string _hashColumnName;
-        private TableDirect _tableDirect;
+        private CsvFile _tableDirect;
         private CsvConfiguration _configuration;
 
-        public CsvHashGenerator(string hashColumnName, TableDirect tableDirect, CsvConfiguration configuration)
+        public CsvHashGenerator(string hashColumnName, CsvFile tableDirect, CsvConfiguration configuration)
         {
             _hashColumnName = hashColumnName;
             _tableDirect = tableDirect;
             _configuration = configuration;
         }
-        public async Task<TableDirect> GenerateHashAsync()
+        public async Task<CsvFile> GenerateHashAsync()
         {
             MemoryStream stream = new MemoryStream();
             StreamWriter writer = new StreamWriter(stream);
             StreamReader reader = new StreamReader(stream);
+            for (int i = 0; i < _configuration.SkipRowCount; i++)
+                writer.WriteLine(string.Empty);
             _configuration.Schema.Add(
                 new CsvFieldSchema()
                 {
@@ -33,7 +35,7 @@ namespace CubeCsv
             }
             writer.Flush();
             _tableDirect.Dispose();
-            return new TableDirect(reader, _configuration);
+            return new CsvFile(reader, _configuration);
         }
     }
 }
