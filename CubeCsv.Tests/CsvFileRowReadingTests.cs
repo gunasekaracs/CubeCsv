@@ -19,7 +19,7 @@ namespace CubeCsv.Tests
                 using (var csvFile = new CsvFile(streamReader, new CsvConfiguration()
                 {
                     CultureInfo = CultureInfo.InvariantCulture,
-                    Delimiter = ";",
+                    Delimiter = ';',
                     HasHeader = false
                 }))
                 {

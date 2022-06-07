@@ -13,6 +13,6 @@ namespace CubeCsv
             set { _success = value; }
         }
         public bool HasErrors => Errors.Any();
-        public List<string> Errors { get; set; } = new List<string>();
+        public List<CsvRowReadError> Errors { get; set; } = new List<CsvRowReadError>();
     }
 }

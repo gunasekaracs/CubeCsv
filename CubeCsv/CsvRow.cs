@@ -57,9 +57,9 @@ namespace CubeCsv
         {
             return ParseToString(ParsingMethod.Sql, headers);
         }
-        public string ToString(string delimiter)
+        public string ToString(char delimiter)
         {
-            return string.Join(delimiter, this.Select(x => x.ToString(delimiter)));
+            return string.Join(delimiter.ToString(), this.Select(x => x.ToString(delimiter)));
         }
         private string ParseToString(ParsingMethod method, CsvHeader headers)
         {

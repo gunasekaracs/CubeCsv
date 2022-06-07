@@ -18,11 +18,12 @@ namespace CubeCsv
         {
             Type = type;
         }
-        public CsvFieldSchema(string name, Type type, int length = 0)
+        public CsvFieldSchema(string name, Type type, int length = 0, CsvFieldValidator validator = null)
         {
             Name = name;
             Type = type;
             Length = length;
+            Validator = validator;
         }
         public override bool Equals(object target)
         {

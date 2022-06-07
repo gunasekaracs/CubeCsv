@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CubeCsv
@@ -17,8 +17,10 @@ namespace CubeCsv
         private CsvConfiguration _configuration = new CsvConfiguration();
         private CsvHeader _header;
         private int _skipRowCount = 0;
-        private int _count;
-        private char comma = '∙';
+        private bool _breakOnError = true;
+        private List<CsvRowReadError> _errors = new List<CsvRowReadError>();
+        private int _count = 0;
+        private int _errorCount = 0;
 
         public CsvHeader Header { get { return _header; } }
         public CsvConfiguration Configuration
@@ -28,16 +30,20 @@ namespace CubeCsv
         }
         public CsvRow Current { get { return _row; } }
         public int Location => _location - 1;
-        public int SkipRowCount => _skipRowCount;   
+        public int SkipRowCount => _skipRowCount;
+        public List<CsvRowReadError> Errors => _errors;
+        public int ErrorCount => _errorCount;
 
         public CsvStreamReader(StreamReader reader, CsvConfiguration configuration)
         {
             _configuration = configuration;
+            if (_configuration.RemoveLineBreaks)
+                reader = RemoveLineBreaks(reader);
             _reader = reader;
             _header = new CsvHeader(_configuration, _reader);
             _header.ResolveSchema(_configuration.Delimiter);
             _skipRowCount = _configuration.SkipRowCount;
-
+            _breakOnError = configuration.BreakOnError;
         }
         public CsvStreamReader(StreamReader reader, CultureInfo cultureInfo) : this(reader, new CsvConfiguration() { CultureInfo = cultureInfo }) { }
 
@@ -48,7 +54,6 @@ namespace CubeCsv
                 Reset();
                 return false;
             }
-
             while (_location < _skipRowCount)
             {
                 await _reader.ReadLineAsync();
@@ -59,11 +64,18 @@ namespace CubeCsv
                     return false;
                 }
             }
-
             string row = await _reader.ReadLineAsync();
             if (!string.IsNullOrWhiteSpace(row))
-                ReadRow(row);
-
+                while (!ReadRow(row))
+                {
+                    row = await _reader.ReadLineAsync();
+                    _errorCount++;
+                    if (_reader.EndOfStream)
+                    {
+                        Reset();
+                        return false;
+                    }
+                }
             _location++;
             return true;
         }
@@ -72,13 +84,18 @@ namespace CubeCsv
 
             return _row[Header.GetOrdinal(name)]?.Value;
         }
+        public object GetValue(int column)
+        {
+            return _row[column]?.Value;
+        }
         public T GetValue<T>(string name)
         {
             var field = _row[Header.GetOrdinal(name)];
-            if (field.Value is T value)
-                return value;
-            throw
-                new CsvInvalidCastException($"Unable to convert type {field.Value.GetType()} into a type of {typeof(T)}");
+            return GetValue<T>(field);
+        }
+        public T GetValue<T>(int column)
+        {
+            return GetValue<T>(_row[column]);
         }
         public string GetValueAsString(string name)
         {
@@ -113,64 +130,157 @@ namespace CubeCsv
                 throw new CsvMissingHeaderException("Header cannot be null");
             Current.SetValue(Header.GetOrdinal(name), header, value);
         }
-        private void ReadRow(string row)
+        private bool ReadRow(string row)
         {
             _row = new CsvRow();
-            char delimiter = char.Parse(_configuration.Delimiter);
+            char delimiter = _configuration.Delimiter;
             if (_configuration.RemoveLineBreaks)
                 row = row.Replace(Environment.NewLine, string.Empty);
+            row = row.Trim();
             if (_configuration.RowCleaner != null)
                 row = _configuration.RowCleaner.Clean(row);
-            row = ReplaceRequiredCommas(row, delimiter);
-            var values = new List<string>(row.Split(delimiter)).Select(x => RestoreCommas(x, delimiter)).ToList();
+            row = row.ReplaceRequiredCommas(delimiter);
+            var values = new List<string>(row.Split(delimiter)).Select(x => x.RestoreCommas(delimiter)).ToList();
             if (values.Count != Header.Count)
-                throw new CsvHeaderCountMismatchException($"Header count and field count does not match. Row has {values.Count} columns and header has {Header.Count}. Row = [{string.Join(",", values)}] and Header = [{Header}]");
+            {
+                AddError($"Header count and field count does not match. Row has {values.Count} columns and header has {Header.Count}. Row = [{string.Join(",", values)}] and Header = [{Header}]");
+                return false;
+            }
             int index = 0;
+            bool success = true;
             foreach (string value in values)
-                _row.Add(new CsvField() { Value = ResolveValue(value, Header[index].Schema.Type), Ordinal = index++ });
+            {
+                var header = Header[index];
+                var fieldResult = ResolveValue(value, header.Schema.Type, header.Ordinal);
+                if (fieldResult.IsSuccess)
+                {
+                    var result = ValidateField(fieldResult.Value, header, _location);
+                    if (result.IsValid)
+                        _row.Add(new CsvField() { Value = fieldResult.Value, Ordinal = index++ });
+                    else
+                    {
+                        success = false;
+                        AddError($"Error at the row {_location + _errorCount}, {result.Error}");
+                    }
+                }
+                else
+                {
+                    success = false;
+                    AddError($"Error at the row {_location + _errorCount}, {fieldResult.Error}");
+                }
+            }
+            return success;
         }
-        private object ResolveValue(string value, Type type)
+        private (bool IsSuccess, object Value, string Error) ResolveValue(string value, Type type, int column)
         {
             if (_configuration.CellCleaner != null)
                 value = _configuration.CellCleaner.Clean(value);
             if (string.IsNullOrWhiteSpace(value))
-                return string.Empty;
-            if (type == typeof(DateTime)) return DateTime.Parse(value);
-            if (type == typeof(double)) return double.Parse(value);
-            if (type == typeof(float)) return float.Parse(value);
-            if (type == typeof(long)) return long.Parse(value);
-            if (type == typeof(int)) return int.Parse(value);
-            return value.Trim();
-        }
-        private List<int> GetQuotedCommas(string value, char delimiter)
-        {
-            bool quoted = false;
-            var indexes = new List<int>();
-
-            for (int i = 0; i < value.Length; i++)
+                return (true, string.Empty, string.Empty);
+            if (type == typeof(DateTime))
             {
-                char charactor = value[i];
-                if (charactor == '"') quoted = !quoted;
-                if (quoted && charactor == delimiter) indexes.Add(i);
+                if (DateTime.TryParse(value, out DateTime result))
+                    return (true, result, string.Empty);
+                else
+                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to Date Time");
             }
-
-            return indexes;
+            if (type == typeof(double))
+            {
+                if (double.TryParse(value, out double result))
+                    return (true, result, string.Empty);
+                else
+                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to double");
+            }
+            if (type == typeof(float))
+            {
+                if (float.TryParse(value, out float result))
+                    return (true, result, string.Empty);
+                else
+                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to float");
+            }
+            if (type == typeof(long))
+            {
+                if (long.TryParse(value, out long result))
+                    return (true, result, string.Empty);
+                else
+                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to long");
+            }
+            if (type == typeof(int))
+            {
+                if (int.TryParse(value, out int result))
+                    return (true, result, string.Empty);
+                else
+                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to int");
+            }
+            return (true, value.Trim(), string.Empty);
         }
-        private string ReplaceRequiredCommas(string value, char delimiter)
+        public (bool IsValid, string Error) ValidateField(object value, CsvFieldHeader header, int index)
         {
-            List<int> indexes = GetQuotedCommas(value, delimiter);
-
-            var builder = new StringBuilder(value);
-            foreach (int i in indexes)
-                builder[i] = comma;
-            value = builder.ToString();
-            value = value.Replace($"{comma} ", comma.ToString());
-
-            return value;
+            if (value == null || string.IsNullOrEmpty(value.ToString())) return (true, string.Empty);
+            if (header == null)
+                throw new CsvMissingHeaderException("Validate a field you should provide a column header");
+            if (header.Schema == null)
+                throw new CsvNullSchemaException("Validate a field you should provide valid header schema");
+            if (header.Schema.Type != value.GetType())
+                return (false, $"schema type [{header.Schema.Type}] and value type [{value.GetType()}] does not match at the column {header.Ordinal}");
+            else if (header.Schema.Type == typeof(string) && header.Schema.Length > 0 && value.ToString().Length > header.Schema.Length)
+                return (false, $"Provided value [{value}] too large to fit in this column {header.Ordinal}. Schema length [{header.Schema.Length}] is but length of the value is [{value.ToString().Length}]");
+            else
+            {
+                var validator = header.Schema.Validator;
+                if (validator != null)
+                {
+                    if (validator.Type == CsvFieldValidator.ValidatorType.Regex)
+                    {
+                        if (string.IsNullOrEmpty(validator.RegularExpression))
+                            throw new CsvNullValueException($"column {header.Ordinal}, You have to setup regular expression in the schema, when setting up the column {index} to validated by regular expression");
+                        if (!Regex.IsMatch(value.ToString(), validator.RegularExpression))
+                            return (false, $"column {header.Ordinal}, value [{value}] is not in the correct format {validator.Description}".Trim());
+                    }
+                }
+            }
+            return (true, string.Empty);
         }
-        private string RestoreCommas(string value, char delimiter)
+        private T GetValue<T>(CsvField field)
         {
-            return value.Replace(comma.ToString(), delimiter.ToString());
+            if (field.Value is T value)
+                return value;
+            throw
+                new CsvInvalidCastException($"Unable to convert type {field.Value.GetType()} into a type of {typeof(T)}");
+        }
+        private void AddError(string message)
+        {
+            if (_breakOnError)
+                throw new CsvHeaderCountMismatchException(message);
+            else
+                _errors.Add(new CsvRowReadError() { Error = message, RowNumber = _location });
+        }
+        private StreamReader RemoveLineBreaks(StreamReader reader)
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            StreamReader result = new StreamReader(stream);
+            bool quoted = false;
+            bool spaced = false;
+            while (!reader.EndOfStream)
+            {
+                char charactor = (char)reader.Read();
+                if (charactor == '"')
+                {
+                    quoted = !quoted;
+                    spaced = false;
+                }
+                if (quoted && (charactor == '\n' || charactor == '\r')) continue;
+                if (quoted && charactor == ' ')
+                {
+                    if (spaced) continue;
+                    spaced = true;
+                }
+                writer.Write(charactor);
+            }
+            writer.Flush();
+            result.BaseStream.Seek(0, SeekOrigin.Begin);
+            return new StreamReader(stream);
         }
     }
 }

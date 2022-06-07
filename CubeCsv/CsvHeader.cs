@@ -36,17 +36,17 @@ namespace CubeCsv
                 foreach (var item in configuration.Schema)
                     Add(new CsvFieldHeader()
                     {
-                        Schema = new CsvFieldSchema(item.Name, item.Type, item.Length),
+                        Schema = new CsvFieldSchema(item.Name, item.Type, item.Length, item.Validator),
                         Ordinal = configuration.Schema.IndexOf(item)
                     });
             }
             else
             {
                 _requireLenghDetection = true;
-                string delimiter = _configuration.Delimiter;
+                char delimiter = _configuration.Delimiter;
                 if (_configuration.HasHeader)
                 {
-                    string headerDelimiter = _configuration.Delimiter;
+                    string headerDelimiter = _configuration.Delimiter.ToString();
                     if (_configuration.HeaderDoubleQuoted)
                         headerDelimiter = $"\"{delimiter}\"";
                     if (_reader.EndOfStream)
@@ -55,7 +55,7 @@ namespace CubeCsv
                     if (headerLine != null && string.IsNullOrWhiteSpace(headerLine))
                         throw new CsvMissingHeaderException("Invalid header line found");
                     headerLine = Sanitize(headerLine, headerDelimiter);
-                    List<string> headers = new List<string>(headerLine.Split(delimiter.ToCharArray()));
+                    List<string> headers = new List<string>(headerLine.Split(delimiter));
                     foreach (string header in headers)
                         Add(new CsvFieldHeader() { Schema = new CsvFieldSchema(header), Ordinal = headers.IndexOf(header) });
                 }
@@ -66,27 +66,32 @@ namespace CubeCsv
         {
             _allowedSwitches = null;
         }
-        public void ResolveSchema(string delimiter)
+        public void ResolveSchema(char delimiter)
         {
             if (!_requireLenghDetection) return;
             while (!_reader.EndOfStream)
             {
                 string row = _reader.ReadLine();
-                List<string> values = new List<string>(row.Split(delimiter.ToCharArray()));
-                foreach (string field in values)
+                row = row.ReplaceRequiredCommas(delimiter);
+                List<string> values = new List<string>(row.Split(delimiter));
+
+                for (int i = 0; i < values.Count; i++)
                 {
+                    var field = values[i];
+                    if (!string.IsNullOrEmpty(field)) 
+                        field = field.RestoreCommas(delimiter);
                     if (string.IsNullOrWhiteSpace(field)) continue;
                     if (DateTime.TryParse(field, out DateTime _))
-                        _ = SetType(values, field, typeof(DateTime));
+                        _ = SetType(values, field, typeof(DateTime), i);
                     else if (int.TryParse(field, out int _))
-                        _ = SetType(values, field, typeof(int));
+                        _ = SetType(values, field, typeof(int), i);
                     else if (float.TryParse(field, out float _))
-                        _ = SetType(values, field, typeof(float));
+                        _ = SetType(values, field, typeof(float), i);
                     else if (double.TryParse(field, out double _))
-                        _ = SetType(values, field, typeof(double));
+                        _ = SetType(values, field, typeof(double), i);
                     else
                     {
-                        CsvFieldHeader header = SetType(values, field, typeof(string));
+                        CsvFieldHeader header = SetType(values, field, typeof(string), i);
                         int length = (field ?? string.Empty).Trim().Length;
                         if (!string.IsNullOrWhiteSpace(field) && length > header.Schema.Length)
                             header.Schema.Length = length;
@@ -124,16 +129,15 @@ namespace CubeCsv
             string marker = "##%##";
             headerLine = headerLine.Trim();
             headerLine = headerLine.Replace(delimiter, marker);
-            headerLine = headerLine.Replace(_configuration.Delimiter, "##delimiter##");
-            headerLine = headerLine.Replace(marker, _configuration.Delimiter);
+            headerLine = headerLine.Replace(_configuration.Delimiter.ToString(), "##delimiter##");
+            headerLine = headerLine.Replace(marker, _configuration.Delimiter.ToString());
             headerLine = headerLine.TrimStart('"');
             headerLine = headerLine.TrimEnd('"');
             return headerLine;
         }
-        private CsvFieldHeader SetType(List<string> values, string field, Type type)
+        private CsvFieldHeader SetType(List<string> values, string field, Type type, int index)
         {
             CsvFieldHeader header = null;
-            int index = values.IndexOf(field);
             if (Count < index + 1)
                 Add(header = new CsvFieldHeader()
                 {

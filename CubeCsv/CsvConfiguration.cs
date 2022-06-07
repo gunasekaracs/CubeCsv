@@ -8,8 +8,9 @@ namespace CubeCsv
     {
         public bool HasHeader { get; set; }
         public CultureInfo CultureInfo { get; set; } = CultureInfo.InvariantCulture;       
-        public string Delimiter { get; set; } = ",";
+        public char Delimiter { get; set; } = ',';
         public bool HeaderDoubleQuoted { get; set; } = true;
+        public bool BreakOnError { get; set; } = true;
         public int SqlRowBatchSize { get; set; } = 1000;
         public int SkipRowCount { get; set; } = 0;
         public bool RemoveLineBreaks { get; set; }

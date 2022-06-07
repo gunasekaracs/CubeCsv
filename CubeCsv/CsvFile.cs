@@ -1,4 +1,3 @@
-using CubeCsv.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -20,6 +19,9 @@ namespace CubeCsv
         public CsvHeader Header => _csvStreamReader.Header;
         public int Location => _csvStreamReader.Location;
         public bool IsEmpty => CountAsync().Result == 0;
+        public int ErrorCount => _csvStreamReader.ErrorCount;
+
+        public List<CsvRowReadError> Errors => _csvStreamReader.Errors;
 
         public CsvFile(StreamReader reader, CsvConfiguration configuration)
         {
@@ -44,13 +46,14 @@ namespace CubeCsv
             return await _csvStreamReader.ReadAsync();
         }
         public object GetValue(string name) => _csvStreamReader.GetValue(name);
+        public object GetValue(int column) => _csvStreamReader.GetValue(column);
         public T GetValue<T>(string name) => _csvStreamReader.GetValue<T>(name);
+        public T GetValue<T>(int column) => _csvStreamReader.GetValue<T>(column);
         public string GetValueAsString(string name) => _csvStreamReader.GetValueAsString(name);
         public void SetValue(string name, object value) => _csvStreamReader.SetValue(name, value);
         public void SetValue(int location, object value) => Current.SetValue(location, null, value);
         public CsvValidationResult ValidateSchema(CsvSchema schema) => new CsvValidator().ValidateSchema(this, schema.ToArray());
         public CsvValidationResult ValidateSchema(params CsvFieldSchema[] fields) => new CsvValidator().ValidateSchema(this, fields);
-        public async Task<CsvValidationResult> Validate() => await new CsvValidator().ValidateAsync(this);
         public async Task<int> CountAsync() => await _csvStreamReader.CountAsync();   
         public async Task<CsvFile> ConvertToJsonAsync(string jsonColumnName) =>
             await new CsvJsonConverter(jsonColumnName, this, _csvStreamReader.Configuration).ConvertToJsonRowCollectionAsync();
