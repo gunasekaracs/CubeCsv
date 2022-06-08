@@ -51,9 +51,9 @@ namespace CubeCsv.Tests
             }
         }
         [TestMethod]
-        public void FlatFileWithIncorrectDataTypeOnLastColumnsRowElevenTest()
+        public void IncorrectDataTypeOnLastColumnsLastRowTest()
         {
-            var data = encoding.GetBytes(CsvFiles.FlatFileWithIncorrectDataTypeOnLastColumnsRowEleven);
+            var data = encoding.GetBytes(CsvFiles.IncorrectDataTypeOnLastColumnsLastRow);
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
@@ -65,7 +65,7 @@ namespace CubeCsv.Tests
                     {
                         new CsvFieldSchema()
                         {
-                             Type=typeof(string),                            
+                             Type=typeof(string),
                              Validator = new CsvFieldValidator()
                              {
                                  Type = CsvFieldValidator.ValidatorType.Regex,
@@ -83,36 +83,90 @@ namespace CubeCsv.Tests
                 }
             }
         }
-
         [TestMethod]
-        public void InvalidFileWithQualifyingQuotesAndCommaInTheCellValuesTest()
+        public void IncorrectDataTypeOnLastColumnsLastRowExcludeDataTest()
         {
-            var data = encoding.GetBytes(CsvFiles.InvalidFileWithQualifyingQuotesAndCommaInTheCellValues);
+            var data = encoding.GetBytes(CsvFiles.IncorrectDataTypeOnLastColumnsLastRow);
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
-                using (var csv = new CsvFile(streamReader, CultureInfo.InvariantCulture))
+                using (var csv = new CsvFile(streamReader, new CsvConfiguration()
+                {
+                    CultureInfo = CultureInfo.InvariantCulture,
+                    BreakOnError = false,
+                    IncludeDataInLogs = false,
+                    Schema = new CsvSchema()
+                    {
+                        new CsvFieldSchema()
+                        {
+                             Type=typeof(string),
+                             Validator = new CsvFieldValidator()
+                             {
+                                 Type = CsvFieldValidator.ValidatorType.Regex,
+                                 Description="Format of the department code should be three letters and three dights seperated by dash, eg ABC-123",
+                                 RegularExpression="^[a-zA-Z]{3}-[0-9]{3}"
+                             }
+                        }
+                    }
+                }))
                 {
                     Assert.IsTrue(csv.CountAsync().Result == 10);
+                    Assert.IsTrue(csv.Errors.Count == 1);
+                    var error = csv.Errors.SingleOrDefault();
+                    Assert.IsTrue(string.Compare(error?.Error, "Error at the row 10, column 0, value is not in the correct format Format of the department code should be three letters and three dights seperated by dash, eg ABC-123") == 0);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WithQualifyingQuotesAndCommaInTheCellValuesTest()
+        {
+            var data = encoding.GetBytes(CsvFiles.WithQualifyingQuotesAndCommaInTheCellValues);
+            using (var stream = new MemoryStream(data))
+            {
+                using (var streamReader = new StreamReader(stream))
+                using (var csv = new CsvFile(streamReader, new CsvConfiguration()
+                {
+                    CultureInfo = CultureInfo.InvariantCulture,
+                    BreakOnError = false,
+                    Schema = new CsvSchema()
+                    {
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 10, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Type = typeof(int) },
+                    }
+                }))
+                {
+                    Assert.IsTrue(csv.CountAsync().Result == 9);
                     while (csv.ReadAsync().Result)
                     {
+                        if (csv.Location == 3)
+                            Assert.IsTrue(string.Compare("ABC\"DE\"FG", csv.GetValue<string>(4)) == 0);
                         if (csv.Location == 4)
-                            Assert.IsTrue(string.Compare("\"ABC\"DE\"FG\"", csv.GetValue<string>(4)) == 0);
+                            Assert.IsTrue(string.Compare("ABC\"DEFG", csv.GetValue<string>(4)) == 0);
                         if (csv.Location == 5)
-                            Assert.IsTrue(string.Compare("\"ABC\"DEFG\"", csv.GetValue<string>(4)) == 0);
+                            Assert.IsTrue(string.Compare("ABCD,EFG", csv.GetValue<string>(4)) == 0);
                         if (csv.Location == 6)
-                            Assert.IsTrue(string.Compare("\"ABCD,EFG\"", csv.GetValue<string>(4)) == 0);
-                        if (csv.Location == 7)
-                            Assert.IsTrue(string.Compare("\"ABC\"D,EFG\"", csv.GetValue<string>(4)) == 0);
+                            Assert.IsTrue(string.Compare("ABC\"D,EFG", csv.GetValue<string>(4)) == 0);
                     }
                 }
             }
         }
 
         [TestMethod]
-        public void FlatFileWithSomeDataLargerThanTheSchemaLimitsAllowsTest()
+        public void SomeDataLargerThanTheSchemaLimitsAllowsTest()
         {
-            var data = new UTF8Encoding().GetBytes(CsvFiles.FlatFileWithSomeDataLargerThanTheSchemaLimitsAllows);
+            var data = new UTF8Encoding().GetBytes(CsvFiles.SomeDataLargerThanTheSchemaLimitsAllows);
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
@@ -128,8 +182,8 @@ namespace CubeCsv.Tests
                         new CsvFieldSchema() { Length= 7, Type = typeof(string) },
                         new CsvFieldSchema() { Length= 7, Type = typeof(string) },
                         new CsvFieldSchema() { Length= 7, Type = typeof(string) },
-                        new CsvFieldSchema() { Length= 7, Type = typeof(string)},
-                        new CsvFieldSchema() { Length= 7, Type = typeof(string)},
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
                         new CsvFieldSchema() { Type = typeof(int) },
                     }
                 }))
@@ -144,9 +198,9 @@ namespace CubeCsv.Tests
         }
 
         [TestMethod]
-        public void FlatFileWithDataTypeIssuesTest()
+        public void DataTypeIssuesTest()
         {
-            var data = new UTF8Encoding().GetBytes(CsvFiles.FlatFileWithDataTypeIssues);
+            var data = new UTF8Encoding().GetBytes(CsvFiles.DataTypeIssues);
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
@@ -184,9 +238,9 @@ namespace CubeCsv.Tests
         }
 
         [TestMethod]
-        public void FlatFileWithMultiLineDataTest()
+        public void MultiLineDataTest()
         {
-            var data = new UTF8Encoding().GetBytes(CsvFiles.FlatFileWithMultiLineData);
+            var data = new UTF8Encoding().GetBytes(CsvFiles.MultiLineData);
             using (var stream = new MemoryStream(data))
             {
                 using (var streamReader = new StreamReader(stream))
@@ -197,6 +251,43 @@ namespace CubeCsv.Tests
                 }))
                 {
                     Assert.IsTrue(csv.CountAsync().Result == 10);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void InvalidIntegerAtTheLastCellTest()
+        {
+            var data = new UTF8Encoding().GetBytes(CsvFiles.InvalidIntegerAtTheLastCell);
+            using (var stream = new MemoryStream(data))
+            {
+                using (var streamReader = new StreamReader(stream))
+                using (var csv = new CsvFile(streamReader, new CsvConfiguration()
+                {
+                    CultureInfo = CultureInfo.InvariantCulture,
+                    BreakOnError = false,
+                    IncludeDataInLogs = false,
+                    Schema = new CsvSchema()
+                    {
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 7, Type = typeof(string) },
+                        new CsvFieldSchema() { Length= 10, Type = typeof(string) },
+                        new CsvFieldSchema() { Type = typeof(int) },
+                    }
+                }))
+                {
+                    Assert.IsTrue(csv.CountAsync().Result == 10);
+                    Assert.IsTrue(csv.Errors.Count == 1);
+                    Assert.IsTrue(string.Compare(csv.Errors[0].Error, "Error at the row 10, column 12, value cannot be converted to int") == 0);
                 }
             }
         }

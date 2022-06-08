@@ -10,7 +10,7 @@ namespace CubeCsv
         public string ToString(char delimiter)
         {
             string value = (Value ?? string.Empty).ToString();
-            if (value.Contains(delimiter.ToString()) && !value.StartsWith("\"") && !value.EndsWith("\""))
+            if ((value.Contains(delimiter.ToString()) || value.Contains("\"")) && !value.StartsWith("\"") && !value.EndsWith("\""))
                 return $"\"{value}\"";
             return value;
         }

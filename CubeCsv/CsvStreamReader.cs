@@ -21,6 +21,7 @@ namespace CubeCsv
         private List<CsvRowReadError> _errors = new List<CsvRowReadError>();
         private int _count = 0;
         private int _errorCount = 0;
+        private bool _includeDataInLogs = true;
 
         public CsvHeader Header { get { return _header; } }
         public CsvConfiguration Configuration
@@ -39,6 +40,7 @@ namespace CubeCsv
             _configuration = configuration;
             if (_configuration.RemoveLineBreaks)
                 reader = RemoveLineBreaks(reader);
+            _includeDataInLogs = _configuration.IncludeDataInLogs;
             _reader = reader;
             _header = new CsvHeader(_configuration, _reader);
             _header.ResolveSchema(_configuration.Delimiter);
@@ -143,7 +145,7 @@ namespace CubeCsv
             var values = new List<string>(row.Split(delimiter)).Select(x => x.RestoreCommas(delimiter)).ToList();
             if (values.Count != Header.Count)
             {
-                AddError($"Header count and field count does not match. Row has {values.Count} columns and header has {Header.Count}. Row = [{string.Join(",", values)}] and Header = [{Header}]");
+                AddError($"Header count and field count does not match. Row has {values.Count} columns and header has {Header.Count}. {(_includeDataInLogs ? $"Row = [{string.Join(",", values)}] and" : string.Empty)} Header = [{Header}]", CsvRowReadError.Type.Header);
                 return false;
             }
             int index = 0;
@@ -160,13 +162,13 @@ namespace CubeCsv
                     else
                     {
                         success = false;
-                        AddError($"Error at the row {_location + _errorCount}, {result.Error}");
+                        AddError($"Error at the row {_location + _errorCount}, {result.Error}", CsvRowReadError.Type.Field);
                     }
                 }
                 else
                 {
                     success = false;
-                    AddError($"Error at the row {_location + _errorCount}, {fieldResult.Error}");
+                    AddError($"Error at the row {_location + _errorCount}, {fieldResult.Error}", CsvRowReadError.Type.Field);
                 }
             }
             return success;
@@ -182,36 +184,38 @@ namespace CubeCsv
                 if (DateTime.TryParse(value, out DateTime result))
                     return (true, result, string.Empty);
                 else
-                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to Date Time");
+                    return (false, string.Empty, $"column {column}, {LogValue(value)} cannot be converted to Date Time");
             }
             if (type == typeof(double))
             {
                 if (double.TryParse(value, out double result))
                     return (true, result, string.Empty);
                 else
-                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to double");
+                    return (false, string.Empty, $"column {column}, {LogValue(value)} cannot be converted to double");
             }
             if (type == typeof(float))
             {
                 if (float.TryParse(value, out float result))
                     return (true, result, string.Empty);
                 else
-                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to float");
+                    return (false, string.Empty, $"column {column}, {LogValue(value)} cannot be converted to float");
             }
             if (type == typeof(long))
             {
                 if (long.TryParse(value, out long result))
                     return (true, result, string.Empty);
                 else
-                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to long");
+                    return (false, string.Empty, $"column {column}, {LogValue(value)} cannot be converted to long");
             }
             if (type == typeof(int))
             {
                 if (int.TryParse(value, out int result))
                     return (true, result, string.Empty);
                 else
-                    return (false, string.Empty, $"column {column}, value [{value}] cannot be converted to int");
+                    return (false, string.Empty, $"column {column}, {LogValue(value)} cannot be converted to int");
             }
+            if (value.StartsWith("\"")) value = value.Substring(1, value.Length - 1);
+            if (value.EndsWith("\"")) value = value.Substring(0, value.Length - 1);
             return (true, value.Trim(), string.Empty);
         }
         public (bool IsValid, string Error) ValidateField(object value, CsvFieldHeader header, int index)
@@ -224,7 +228,7 @@ namespace CubeCsv
             if (header.Schema.Type != value.GetType())
                 return (false, $"schema type [{header.Schema.Type}] and value type [{value.GetType()}] does not match at the column {header.Ordinal}");
             else if (header.Schema.Type == typeof(string) && header.Schema.Length > 0 && value.ToString().Length > header.Schema.Length)
-                return (false, $"Provided value [{value}] too large to fit in this column {header.Ordinal}. Schema length [{header.Schema.Length}] is but length of the value is [{value.ToString().Length}]");
+                return (false, $"Provided {LogValue(value)} too large to fit in this column {header.Ordinal}. Schema length [{header.Schema.Length}] is but length of the value is [{value.ToString().Length}]");
             else
             {
                 var validator = header.Schema.Validator;
@@ -235,7 +239,7 @@ namespace CubeCsv
                         if (string.IsNullOrEmpty(validator.RegularExpression))
                             throw new CsvNullValueException($"column {header.Ordinal}, You have to setup regular expression in the schema, when setting up the column {index} to validated by regular expression");
                         if (!Regex.IsMatch(value.ToString(), validator.RegularExpression))
-                            return (false, $"column {header.Ordinal}, value [{value}] is not in the correct format {validator.Description}".Trim());
+                            return (false, $"column {header.Ordinal}, {LogValue(value)} is not in the correct format {validator.Description}".Trim());
                     }
                 }
             }
@@ -247,13 +251,6 @@ namespace CubeCsv
                 return value;
             throw
                 new CsvInvalidCastException($"Unable to convert type {field.Value.GetType()} into a type of {typeof(T)}");
-        }
-        private void AddError(string message)
-        {
-            if (_breakOnError)
-                throw new CsvHeaderCountMismatchException(message);
-            else
-                _errors.Add(new CsvRowReadError() { Error = message, RowNumber = _location });
         }
         private StreamReader RemoveLineBreaks(StreamReader reader)
         {
@@ -281,6 +278,29 @@ namespace CubeCsv
             writer.Flush();
             result.BaseStream.Seek(0, SeekOrigin.Begin);
             return new StreamReader(stream);
+        }
+        private void AddError(string message, CsvRowReadError.Type type)
+        {
+            if (_breakOnError)
+                throw CreateException(type, message);
+            else
+                _errors.Add(new CsvRowReadError() { Error = message, RowNumber = _location });
+        }
+        private Exception CreateException(CsvRowReadError.Type type, string message)
+        {
+            switch (type)
+            {
+                case CsvRowReadError.Type.Header:
+                    return new CsvInvalidHeaderException(message);
+                case CsvRowReadError.Type.Field:
+                    return new CsvInvalidFieldException(message);
+                default:
+                    throw new NotImplementedException("Type of this exception is not implemeted");
+            }
+        }
+        private string LogValue(object value)
+        {
+            return $"value{(_includeDataInLogs ? $" [{value}]" : string.Empty)}";
         }
     }
 }
