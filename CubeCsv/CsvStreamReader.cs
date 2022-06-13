@@ -259,6 +259,7 @@ namespace CubeCsv
             StreamReader result = new StreamReader(stream);
             bool quoted = false;
             bool spaced = false;
+            reader.BaseStream.Seek(0, SeekOrigin.Begin);
             while (!reader.EndOfStream)
             {
                 char charactor = (char)reader.Read();
