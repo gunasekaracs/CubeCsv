@@ -47,7 +47,7 @@ namespace CubeCsv
                 }
                 count++;
             }
-            if (builder.Length > 0)
+            if (builder.Length > 0 && count > 1)
             {
                 script = builder.ToString().Trim();
                 sql.Add(script.Remove(script.Length - 1, 1));
