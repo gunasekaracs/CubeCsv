@@ -25,10 +25,11 @@ namespace CubeCsv
             StreamReader reader = new StreamReader(stream);
             for (int i = 0; i < _configuration.SkipRowCount; i++)
                 writer.WriteLine(string.Empty);
+            var header = _configuration.Schema.ToHeader();
             while (await _tableDirect.ReadAsync())
             {
                 var row = new CsvRow();
-                row.Add(new CsvField() { Value = _tableDirect.Current.ToJson(_configuration.Schema.ToHeader()) });
+                row.Add(new CsvField() { Value = _tableDirect.Current.ToJson(header) });
                 writer.WriteLine(row.ToString(_configuration.Delimiter));
             }
             writer.Flush();

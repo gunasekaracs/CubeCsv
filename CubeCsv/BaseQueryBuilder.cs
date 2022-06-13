@@ -42,7 +42,7 @@ namespace CubeCsv
                 Type = Type.GetType(row[12].ToString())
             };
             if (schema.Type == typeof(string))
-                schema.Length = schema.Length = int.Parse(row[4].ToString());
+                schema.Length = schema.Length = int.Parse(row[2].ToString());
             return schema;
         }
 

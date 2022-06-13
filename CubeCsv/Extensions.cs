@@ -9,17 +9,36 @@ namespace CubeCsv
         public static List<int> GetQuotedCommas(this string value, char delimiter)
         {
             bool quoted = false;
+            bool json = false;
+            bool jsonString = false;
             var indexes = new List<int>();
 
             for (int i = 0; i < value.Length; i++)
             {
                 char charactor = value[i];
-                if (charactor == '"')
+                if (charactor == '"' && !quoted)
+                {
                     quoted = true;
-                if (quoted && charactor == '"' && (i + 1 == value.Length || value[i + 1] == delimiter))
+                    jsonString = json = false;
+                }
+                if (delimiter == ',' && quoted && charactor == ':' && value[i - 1] == '"')
+                {
+                    json = true;
+                    if (i + 1 < value.Length && value[i + 1] == '"')
+                        jsonString = true;
+                }
+                if (delimiter == ',' && quoted && json && value[i] == '}')
+                    json = jsonString = false;
+                if (quoted && charactor == '"' && (i + 1 == value.Length || value[i + 1] == delimiter) && !json && (!jsonString || value[i - 1] == '"'))
+                {
                     quoted = false;
+                    jsonString = json = false;
+                }
                 if (quoted && charactor == delimiter)
+                {
+                    jsonString = json = false;
                     indexes.Add(i);
+                }
             }
 
             return indexes;
