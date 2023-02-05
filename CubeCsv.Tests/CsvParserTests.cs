@@ -30,7 +30,7 @@ namespace CubeCsv.Tests
             CsvFieldHeader lastNameHeader = csvFile.Header[HeaderNames.LastName];
             Assert.IsTrue(lastNameHeader.Schema.Name == HeaderNames.LastName);
             Assert.IsTrue(lastNameHeader.Ordinal == 2);
-            Assert.IsTrue(lastNameHeader.Schema.Length == 12);
+            Assert.IsTrue(lastNameHeader.Schema.Length == 6);
             Assert.IsTrue(lastNameHeader.Schema.Type == typeof(string));
 
             CsvFieldHeader dateOrBirthHeader = csvFile.Header[HeaderNames.DateOrBirth];

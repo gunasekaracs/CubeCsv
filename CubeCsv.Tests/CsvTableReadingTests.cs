@@ -43,36 +43,36 @@ namespace CubeCsv.Tests
             {
                 if (csvFile.Location == 0)
                 {
-                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.FirstName) == "Charith");
-                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.LastName) == "Gunasekara");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.FirstName) == "Neil");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.LastName) == "White");
                     Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 42);
                     Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1980-07-20");
                 }
                 if (csvFile.Location == 1)
                 {
-                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.FirstName) == "Dilshan");
-                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.LastName) == "Amarasinghe");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.FirstName) == "Peter");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.LastName) == "Bell");
                     Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 34);
                     Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1988-01-10");
                 }
                 if (csvFile.Location == 2)
                 {
-                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Kumanan");
-                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Panchalingam");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Richard");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Johnes");
                     Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 30);
                     Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-05-02");
                 }
                 if (csvFile.Location == 3)
                 {
-                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Azmina");
-                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Mohomadeen");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Nancy");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Bella");
                     Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 30);
                     Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-05-20");
                 }
                 if (csvFile.Location == 4)
                 {
-                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Eswar");
-                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Raj");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Bob");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Way");
                     Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 30);
                     Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-08-05");
                 }

@@ -32,11 +32,11 @@ namespace CubeCsv.Tests
             sql = $@"INSERT INTO ""{ CsvSqlConstants.EmployeesTableName }"" 
                     ({ CsvSqlConstants.FirstName },{ CsvSqlConstants.LastName },{ CsvSqlConstants.Age },{ CsvSqlConstants.DateOfBirth }) 
                     VALUES 
-                        ('Charith', 'Gunasekara', 42, '1980-07-20'),
-                        ('Dilshan', 'Amarasinghe', 34, '1988-01-10'),
-                        ('Kumanan', 'Panchalingam', 30, '1992-05-02'),
-                        ('Azmina', 'Mohomadeen', 30, '1992-05-20'),
-                        ('Eswar', 'Raj', 30, '1992-08-05')";
+                        ('Neil', 'White', 42, '1980-07-20'),
+                        ('Peter', 'Bell', 34, '1988-01-10'),
+                        ('Richard', 'Johnes', 30, '1992-05-02'),
+                        ('Nancy', 'Bella', 30, '1992-05-20'),
+                        ('Bob', 'Way', 30, '1992-08-05')";
 
             command = new SqliteCommand(sql, connection);
             command.ExecuteNonQuery();

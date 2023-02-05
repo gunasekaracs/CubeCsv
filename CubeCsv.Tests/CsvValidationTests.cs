@@ -10,7 +10,7 @@ namespace CubeCsv.Tests
     [TestClass]
     public class CsvValidationTests
     {
-        private ASCIIEncoding encoding = new ASCIIEncoding();
+        private readonly ASCIIEncoding encoding = new();
 
         [TestMethod]
         public void CsvValidTest()
@@ -22,7 +22,7 @@ namespace CubeCsv.Tests
             Assert.IsTrue(csv.ValidateSchema(
                 new CsvFieldSchema(HeaderNames.Department, typeof(string), 3),
                 new CsvFieldSchema(HeaderNames.FirstName, typeof(string)),
-                new CsvFieldSchema(HeaderNames.LastName, typeof(string), 12),
+                new CsvFieldSchema(HeaderNames.LastName, typeof(string), 6),
                 new CsvFieldSchema(HeaderNames.DateOrBirth, typeof(DateTime)),
                 new CsvFieldSchema(HeaderNames.Age, typeof(int)),
                 new CsvFieldSchema(HeaderNames.Worth, typeof(float))).Success);
@@ -38,7 +38,7 @@ namespace CubeCsv.Tests
             var result = csv.ValidateSchema(
                 new CsvFieldSchema(HeaderNames.Department, typeof(string), 3),
                 new CsvFieldSchema(HeaderNames.FirstName, typeof(string)),
-                new CsvFieldSchema(HeaderNames.LastName, typeof(string), 12),
+                new CsvFieldSchema(HeaderNames.LastName, typeof(string), 6),
                 new CsvFieldSchema(HeaderNames.Age, typeof(int)));
             Assert.IsTrue(result.HasErrors && result.Errors.Count > 0);
             Assert.IsTrue(result.Errors[0].Error == "Column at the index 3 is a type mismatch");

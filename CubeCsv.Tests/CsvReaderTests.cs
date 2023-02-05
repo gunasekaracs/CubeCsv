@@ -23,10 +23,10 @@ namespace CubeCsv.Tests
                 csvFile.ReadAsync().Wait();
             Assert.IsTrue(csvFile.GetValueAsString(HeaderNames.Department) == "BBS");
             Assert.IsTrue(csvFile.GetValue<string>(HeaderNames.Department) == "BBS");
-            Assert.IsTrue(csvFile.GetValueAsString(HeaderNames.FirstName) == "Dilshan");
-            Assert.IsTrue(csvFile.GetValue<string>(HeaderNames.FirstName) == "Dilshan");
-            Assert.IsTrue(csvFile.GetValueAsString(HeaderNames.LastName) == "Amarasinghe");
-            Assert.IsTrue(csvFile.GetValue<string>(HeaderNames.LastName) == "Amarasinghe");
+            Assert.IsTrue(csvFile.GetValueAsString(HeaderNames.FirstName) == "Peter");
+            Assert.IsTrue(csvFile.GetValue<string>(HeaderNames.FirstName) == "Peter");
+            Assert.IsTrue(csvFile.GetValueAsString(HeaderNames.LastName) == "Bell");
+            Assert.IsTrue(csvFile.GetValue<string>(HeaderNames.LastName) == "Bell");
             Assert.IsTrue(DateTime.Parse(csvFile.GetValueAsString(HeaderNames.DateOrBirth) ?? "1980-07-20") == DateTime.Parse("07-05-2002"));
             Assert.IsTrue(csvFile.GetValue<DateTime>(HeaderNames.DateOrBirth) == DateTime.Parse("07-05-2002"));
             Assert.IsTrue(int.Parse(csvFile.GetValueAsString(HeaderNames.Age) ?? "0") == 34);
@@ -47,7 +47,7 @@ namespace CubeCsv.Tests
             Assert.IsTrue(tableDirect.GetValueAsString(HeaderNames.BirthDate) == string.Empty);
             Assert.IsTrue(tableDirect.GetValueAsString(HeaderNames.CustomerCode) == string.Empty);
             tableDirect.ReadAsync().Wait();
-            Assert.IsTrue(tableDirect.GetValue<string>(HeaderNames.FullName) == "Dilshan");
+            Assert.IsTrue(tableDirect.GetValue<string>(HeaderNames.FullName) == "Peter");
             Assert.IsTrue(tableDirect.GetValueAsString(HeaderNames.BirthDate) == string.Empty);
             Assert.IsTrue(tableDirect.GetValueAsString(HeaderNames.CustomerCode) == string.Empty);
             tableDirect.ReadAsync().Wait();
