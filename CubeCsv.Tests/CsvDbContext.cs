@@ -5,7 +5,7 @@ namespace CubeCsv.Tests
 {
     internal class CsvDbContext
     {
-        string databaseFile = "CubeCsv.db";
+        readonly string databaseFile = "CubeCsv.db";
 
         public void Seed()
         {

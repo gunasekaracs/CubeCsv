@@ -8,73 +8,73 @@ namespace CubeCsv.Tests
         [TestMethod]
         public void CsvTableReadingTest()
         {
-            CsvDbContext context = new CsvDbContext();
+            CsvDbContext context = new();
             context.Seed();
 
-            CsvFile tableDirect = new CsvFile(
+            CsvFile csvFile = new(
                 CsvSqlConstants.EmployeesTableName,
                 context.CreateConnection(),
                 string.Empty,
                 string.Empty,
                 new CsvConfiguration() { ColumnExlusions = new() { "Id" } });
 
-            tableDirect = tableDirect.ReadRowsFromTableAsync().Result;
+            csvFile = csvFile.ReadRowsFromTableAsync().Result;
 
-            Assert.IsTrue(tableDirect.Header[0].Ordinal == 0);
-            Assert.IsTrue(tableDirect.Header[0].Schema.Name == CsvSqlConstants.FirstName);
-            Assert.IsTrue(tableDirect.Header[0].Schema.Type == typeof(string));
+            Assert.IsTrue(csvFile.Header[0].Ordinal == 0);
+            Assert.IsTrue(csvFile.Header[0].Schema.Name == CsvSqlConstants.FirstName);
+            Assert.IsTrue(csvFile.Header[0].Schema.Type == typeof(string));
 
-            Assert.IsTrue(tableDirect.Header[1].Ordinal == 1);
-            Assert.IsTrue(tableDirect.Header[1].Schema.Name == CsvSqlConstants.LastName);
-            Assert.IsTrue(tableDirect.Header[1].Schema.Type == typeof(string));
+            Assert.IsTrue(csvFile.Header[1].Ordinal == 1);
+            Assert.IsTrue(csvFile.Header[1].Schema.Name == CsvSqlConstants.LastName);
+            Assert.IsTrue(csvFile.Header[1].Schema.Type == typeof(string));
 
-            Assert.IsTrue(tableDirect.Header[2].Ordinal == 2);
-            Assert.IsTrue(tableDirect.Header[2].Schema.Name == CsvSqlConstants.Age);
-            Assert.IsTrue(tableDirect.Header[2].Schema.Type == typeof(long));
+            Assert.IsTrue(csvFile.Header[2].Ordinal == 2);
+            Assert.IsTrue(csvFile.Header[2].Schema.Name == CsvSqlConstants.Age);
+            Assert.IsTrue(csvFile.Header[2].Schema.Type == typeof(long));
 
-            Assert.IsTrue(tableDirect.Header[3].Ordinal == 3);
-            Assert.IsTrue(tableDirect.Header[3].Schema.Name == CsvSqlConstants.DateOfBirth);
-            Assert.IsTrue(tableDirect.Header[3].Schema.Type == typeof(string));
+            Assert.IsTrue(csvFile.Header[3].Ordinal == 3);
+            Assert.IsTrue(csvFile.Header[3].Schema.Name == CsvSqlConstants.DateOfBirth);
+            Assert.IsTrue(csvFile.Header[3].Schema.Type == typeof(string));
 
-            int count = tableDirect.CountAsync().Result;
+            int count = csvFile.CountAsync().Result;
             Assert.IsTrue(count == 5);
 
-            while (tableDirect.ReadAsync().Result)
+            while (csvFile.ReadAsync().Result)
             {
-                if (tableDirect.Location == 0)
+                if (csvFile.Location == 0)
                 {
-                    Assert.IsTrue(tableDirect.GetValue<string>(CsvSqlConstants.FirstName) == "Charith");
-                    Assert.IsTrue(tableDirect.GetValue<string>(CsvSqlConstants.LastName) == "Gunasekara");
-                    Assert.IsTrue(tableDirect.GetValue<long>(CsvSqlConstants.Age) == 42);
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1980-07-20");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.FirstName) == "Charith");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.LastName) == "Gunasekara");
+                    Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 42);
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1980-07-20");
                 }
-                if (tableDirect.Location == 1)
+                if (csvFile.Location == 1)
                 {
-                    Assert.IsTrue(tableDirect.GetValue<string>(CsvSqlConstants.FirstName) == "Dilshan");
-                    Assert.IsTrue(tableDirect.GetValue<string>(CsvSqlConstants.LastName) == "Amarasinghe");
-                    Assert.IsTrue(tableDirect.GetValue<long>(CsvSqlConstants.Age) == 34);
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1988-01-10");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.FirstName) == "Dilshan");
+                    Assert.IsTrue(csvFile.GetValue<string>(CsvSqlConstants.LastName) == "Amarasinghe");
+                    Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 34);
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1988-01-10");
                 }
-                if (tableDirect.Location == 2)
+                if (csvFile.Location == 2)
                 {
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.FirstName) == "Kumanan");
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.LastName) == "Panchalingam");
-                    Assert.IsTrue(tableDirect.GetValue<long>(CsvSqlConstants.Age) == 30);
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-05-02");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Kumanan");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Panchalingam");
+                    Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 30);
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-05-02");
                 }
-                if (tableDirect.Location == 3)
+                if (csvFile.Location == 3)
                 {
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.FirstName) == "Azmina");
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.LastName) == "Mohomadeen");
-                    Assert.IsTrue(tableDirect.GetValue<long>(CsvSqlConstants.Age) == 30);
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-05-20");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Azmina");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Mohomadeen");
+                    Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 30);
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-05-20");
                 }
-                if (tableDirect.Location == 4)
+                if (csvFile.Location == 4)
                 {
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.FirstName) == "Eswar");
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.LastName) == "Raj");
-                    Assert.IsTrue(tableDirect.GetValue<long>(CsvSqlConstants.Age) == 30);
-                    Assert.IsTrue(tableDirect.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-08-05");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.FirstName) == "Eswar");
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.LastName) == "Raj");
+                    Assert.IsTrue(csvFile.GetValue<long>(CsvSqlConstants.Age) == 30);
+                    Assert.IsTrue(csvFile.GetValueAsString(CsvSqlConstants.DateOfBirth) == "1992-08-05");
                 }
             }
         }
