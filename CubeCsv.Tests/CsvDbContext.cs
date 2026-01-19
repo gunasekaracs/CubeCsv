@@ -9,9 +9,11 @@ namespace CubeCsv.Tests
 
         public void Seed()
         {
+            // Initialize SQLite provider before any operations
+            SQLitePCL.Batteries.Init();
+            
             if (File.Exists(databaseFile)) File.Delete(databaseFile);
             SqliteConnection connection = new($"Data Source={ databaseFile }");
-            SQLitePCL.raw.SetProvider(new SQLitePCL.SQLite3Provider_e_sqlite3());
             connection.Open();
 
             string sql =

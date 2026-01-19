@@ -14,14 +14,14 @@ namespace CubeCsv
         private CsvRow _row;
         private int _location = 0;
         private StreamReader _reader;
-        private CsvConfiguration _configuration = new CsvConfiguration();
+        private CsvConfiguration _configuration = new CsvConfiguration()    ;
         private CsvHeader _header;
-        private int _skipRowCount = 0;
-        private bool _breakOnError = true;
-        private List<CsvRowReadError> _errors = new List<CsvRowReadError>();
+        private readonly int _skipRowCount = 0;
+        private readonly bool _breakOnError = true;
+        private readonly List<CsvRowReadError> _errors = new List<CsvRowReadError>();
         private int _count = 0;
         private int _errorCount = 0;
-        private bool _includeDataInLogs = true;
+        private readonly bool _includeDataInLogs = true;
 
         public CsvHeader Header { get { return _header; } }
         public CsvConfiguration Configuration
@@ -127,9 +127,7 @@ namespace CubeCsv
         }
         public void SetValue(string name, object value)
         {
-            var header = Header["name"];
-            if (header == null)
-                throw new CsvMissingHeaderException("Header cannot be null");
+            var header = Header[name] ?? throw new CsvMissingHeaderException("Header cannot be null");
             Current.SetValue(Header.GetOrdinal(name), header, value);
         }
         private bool ReadRow(string row)

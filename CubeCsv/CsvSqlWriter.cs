@@ -8,7 +8,7 @@ namespace CubeCsv
 {
     class CsvSqlWriter : CsvSqlBase
     {
-        private CsvFile _tableDirect;
+        private readonly CsvFile _tableDirect;
 
         public CsvSqlWriter(string table, DbConnection connection, CsvFile tableDirect, CsvConfiguration configuration)
             : base(table, connection, configuration)

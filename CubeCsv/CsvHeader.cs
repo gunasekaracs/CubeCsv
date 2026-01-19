@@ -9,8 +9,8 @@ namespace CubeCsv
     public sealed class CsvHeader : List<CsvFieldHeader>, IDisposable
     {
         private CsvConfiguration _configuration = new CsvConfiguration();
-        private StreamReader _reader;
-        private bool _requireLenghDetection;
+        private readonly StreamReader _reader;
+        private readonly bool _requireLenghDetection;
         private Dictionary<Type, List<Type>> _allowedSwitches = new Dictionary<Type, List<Type>>()
         {
             { typeof(int), new List<Type>{ typeof(string), typeof(double),  typeof(float) } },
@@ -47,11 +47,13 @@ namespace CubeCsv
                 if (_configuration.HasHeader)
                 {
                     string headerDelimiter = _configuration.Delimiter.ToString();
+                    string headerLine = _reader.ReadLine();
+
                     if (_configuration.HeaderDoubleQuoted)
                         headerDelimiter = $"\"{delimiter}\"";
                     if (_reader.EndOfStream)
                         throw new CsvMissingHeaderException("There is no header row found");
-                    string headerLine = _reader.ReadLine();
+
                     if (headerLine != null && string.IsNullOrWhiteSpace(headerLine))
                         throw new CsvMissingHeaderException("Invalid header line found");
                     headerLine = Sanitize(headerLine, headerDelimiter);
@@ -112,16 +114,19 @@ namespace CubeCsv
                 schema.Add(header.Schema);
             return schema;
         }
-        public override string ToString()
+        public string ToString(char delimiter)
         {
-            return string.Join(",", this);
+            string headerDelimiter = delimiter.ToString();
+            if (_configuration.HeaderDoubleQuoted)
+                headerDelimiter = $"\"{delimiter}\"";
+            return string.Join(headerDelimiter.ToString(), this);
         }
         public int GetOrdinal(string name)
         {
             var header = this[name];
-            if (header == null)
-                throw new CsvMissingHeaderException($"Unable to find the [{name}] in the headers collection of [{this}]");
-            return header.Ordinal;
+            return header == null
+                ? throw new CsvMissingHeaderException($"Unable to find the [{name}] in the headers collection of [{this}]")
+                : header.Ordinal;
         }
 
         private string Sanitize(string headerLine, string delimiter)
